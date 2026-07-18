@@ -19,7 +19,8 @@ namespace driver
             void set_process_callback(ProcessCallback callback) override;
             void start(std::span<int32_t> tx_buffer, std::span<int32_t> rx_buffer) override;
 
-            // Called from the HAL_SAI_Rx*CpltCallback glue in hal_audio_stream.cc — not for app use.
+            // Called from the HAL_SAI_Rx*CpltCallback glue in hal_audio_stream.cc — not for app
+            // use.
             void notify_rx_half_complete(SAI_HandleTypeDef *hsai);
             void notify_rx_complete(SAI_HandleTypeDef *hsai);
 

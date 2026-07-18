@@ -20,8 +20,7 @@ namespace driver
          * scan order (and so which array index maps to which physical channel)
          * is whatever rank order MX_ADC1_Init assigned.
          */
-        template <size_t kChannelCount>
-        class HalAdcInputArray : public AnalogInputArray
+        template <size_t kChannelCount> class HalAdcInputArray : public AnalogInputArray
         {
         public:
             explicit HalAdcInputArray(ADC_HandleTypeDef *handle) : handle_{handle} {}
@@ -29,11 +28,14 @@ namespace driver
             /// Kicks off the free-running DMA scan. Call once, after ADC/DMA HAL init.
             bool start()
             {
-                return HAL_ADC_Start_DMA(handle_, reinterpret_cast<uint32_t *>(raw_.data()), kChannelCount) ==
-                       HAL_OK;
+                return HAL_ADC_Start_DMA(handle_, reinterpret_cast<uint32_t *>(raw_.data()),
+                                         kChannelCount) == HAL_OK;
             }
 
-            size_t channel_count() const override { return kChannelCount; }
+            size_t channel_count() const override
+            {
+                return kChannelCount;
+            }
 
             uint16_t read(size_t channel) const override
             {

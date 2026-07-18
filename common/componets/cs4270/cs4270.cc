@@ -58,7 +58,8 @@ namespace componets
 
         for (int reg_addr = kRegDacBVolControl; reg_addr >= kRegPowerControl; --reg_addr)
         {
-            const uint8_t expected = kDefaultConfig[static_cast<size_t>(reg_addr - kRegPowerControl)];
+            const uint8_t expected =
+                kDefaultConfig[static_cast<size_t>(reg_addr - kRegPowerControl)];
 
             if (!reg_write(static_cast<uint8_t>(reg_addr), expected))
             {

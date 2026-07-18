@@ -12,7 +12,8 @@
 
 namespace test
 {
-    inline bool write_wav_mono16(const char *path, std::span<const float> samples, uint32_t sample_rate_hz)
+    inline bool write_wav_mono16(const char *path, std::span<const float> samples,
+                                 uint32_t sample_rate_hz)
     {
         FILE *file = std::fopen(path, "wb");
         if (!file)

@@ -14,14 +14,18 @@ namespace dsp
     class NoiseGate : public Effect
     {
     public:
-        NoiseGate(float threshold, float attack_ms, float release_ms, float hold_ms, float sample_rate_hz)
+        NoiseGate(float threshold, float attack_ms, float release_ms, float hold_ms,
+                  float sample_rate_hz)
             : hold_time_s_{0.001f * hold_ms}, sample_time_s_{1.0f / sample_rate_hz}
         {
             set_threshold(threshold);
             set_attack_release_time(attack_ms, release_ms, sample_rate_hz);
         }
 
-        void set_threshold(float threshold) { threshold_ = std::clamp(threshold, 0.0f, 1.0f); }
+        void set_threshold(float threshold)
+        {
+            threshold_ = std::clamp(threshold, 0.0f, 1.0f);
+        }
 
         void set_attack_release_time(float attack_ms, float release_ms, float sample_rate_hz)
         {
