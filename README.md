@@ -63,8 +63,11 @@ The DSP-relevant pieces live in a few places:
   cmake --preset native
   cmake --build build/native
   ./build/native/app/effect_test/effect_test.exe [path/to/input.wav]
+
   ```
-  This is the fastest way to prototype/tune a new `dsp::Effect` — write it in `common/core/dsp/`, wire it into `effect_test/main.cpp`, and listen to the result before ever flashing hardware.
+
+  This is the fastest way to prototype/tune a new `dsp::Effect` — write it in `common/core/dsp/`, wire it into `effect_test/main.cpp`, and listen to the result before ever flashing hardware. There is a example guitar noise in `\common\core\dsp\audio_test_clips\` that you can copy the path to.
+
 - **`boards/dsp_pedal/`** — the board support package: `bsp.h`/`bsp_h743.cpp` wire up the concrete CS4270 codec, SAI/DMA audio stream, ADC-scanned pots, and GPIOs behind the hardware-agnostic interfaces above. `board_pins.h` is generated from CubeIDE — don't hand-edit it, regenerate it there instead.
 - **`common/componets/cs4270/`** — the CS4270 codec driver (I2C register config + reset sequencing), hardware-agnostic over injected `driver::I2c`/`driver::Gpio`/`driver::Delay`.
 
