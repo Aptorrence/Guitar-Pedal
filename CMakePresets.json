@@ -1,0 +1,68 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 27,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "native",
+            "inherits": "base",
+            "binaryDir": "${sourceDir}/build/native",
+            "cacheVariables": {
+                "BOARD": "NATIVE"
+            }
+        },
+        {
+            "name": "arm32_base",
+            "inherits": "base",
+            "hidden": true,
+            "toolchainFile": "cmake/toolchains/arm-gcc.cmake"
+        },
+        {
+            "name": "stm32l4",
+            "hidden": true,
+            "inherits": "arm32_base",
+            "cacheVariables": {
+                "FREERTOS_PORT": "GCC_ARM_CM4F",
+                "MCU_FAMILY": "STM32L4"
+            }
+        },
+        {
+            "name": "board_with_stm32l496zg",
+            "inherits": "stm32l4",
+            "binaryDir": "${sourceDir}/build/board_with_stm32l496zg",
+            "cacheVariables": {
+                "BOARD": "board_with_stm32l496zg",
+                "MCU_NAME": "STM32L496xx"
+            }
+        },
+        {
+            "name": "stm32h7",
+            "hidden": true,
+            "inherits": "arm32_base",
+            "cacheVariables": {
+                "FREERTOS_PORT": "GCC_ARM_CM7",
+                "MCU_FAMILY": "STM32H7"
+            }
+        },
+        {
+            "name": "dsp_pedal",
+            "inherits": "stm32h7",
+            "binaryDir": "${sourceDir}/build/dsp_pedal",
+            "cacheVariables": {
+                "BOARD": "dsp_pedal",
+                "MCU_NAME": "STM32H743xx"
+            }
+        }
+    ]
+}

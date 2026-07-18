@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "STM32L496",
+            "compileCommands": "${workspaceFolder}/build/board_with_stm32l496zg/compile_commands.json"
+        },
+        {
+            "name": "STM32H743",
+            "compileCommands": "${workspaceFolder}/build/dsp_pedal/compile_commands.json"
+        },
+        {
+            "name": "Native",
+            "compileCommands": "${workspaceFolder}/build/native/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,10 @@
+if("${BOARD}" STREQUAL "NATIVE")
+    add_subdirectory(hello_world)
+    add_subdirectory(effect_test)
+else()
+    add_subdirectory(blink)
+endif()
+
+if("${BOARD}" STREQUAL "dsp_pedal")
+    add_subdirectory(guitar_pedal)
+endif()

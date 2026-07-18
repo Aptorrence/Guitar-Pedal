@@ -1,0 +1,8 @@
+if(NOT "${BOARD}" STREQUAL "NATIVE")
+    add_subdirectory(CMSIS)
+endif()
+if ("${MCU_FAMILY}" STREQUAL "STM32L4")
+    add_subdirectory(stm32/l4xx)
+elseif("${MCU_FAMILY}" STREQUAL "STM32H7")
+    add_subdirectory(stm32/h7xx)
+endif()

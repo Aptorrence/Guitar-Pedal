@@ -1,0 +1,56 @@
+#pragma once
+
+// Pin definitions from CubeIDE main.h — do not edit by hand, regenerate from CubeIDE.
+
+#define CODEC_NRST_Pin          GPIO_PIN_13
+#define CODEC_NRST_GPIO_Port    GPIOC
+#define POT_7_Pin               GPIO_PIN_0
+#define POT_7_GPIO_Port         GPIOC
+#define POT_6_Pin               GPIO_PIN_1
+#define POT_6_GPIO_Port         GPIOC
+#define PLED_7_Pin              GPIO_PIN_2
+#define PLED_7_GPIO_Port        GPIOC
+#define PLED_6_Pin              GPIO_PIN_3
+#define PLED_6_GPIO_Port        GPIOC
+#define PLED_5_Pin              GPIO_PIN_0
+#define PLED_5_GPIO_Port        GPIOA
+#define PLED_4_Pin              GPIO_PIN_1
+#define PLED_4_GPIO_Port        GPIOA
+#define POT_5_Pin               GPIO_PIN_2
+#define POT_5_GPIO_Port         GPIOA
+#define POT_4_Pin               GPIO_PIN_3
+#define POT_4_GPIO_Port         GPIOA
+#define POT_3_Pin               GPIO_PIN_4
+#define POT_3_GPIO_Port         GPIOA
+#define PWLED_3_Pin             GPIO_PIN_5
+#define PWLED_3_GPIO_Port       GPIOA
+#define EXP_PED_Pin             GPIO_PIN_6
+#define EXP_PED_GPIO_Port       GPIOA
+#define PWLED_2_Pin             GPIO_PIN_7
+#define PWLED_2_GPIO_Port       GPIOA
+#define POT_0_Pin               GPIO_PIN_4
+#define POT_0_GPIO_Port         GPIOC
+#define POT_2_Pin               GPIO_PIN_5
+#define POT_2_GPIO_Port         GPIOC
+#define POT_1_Pin               GPIO_PIN_0
+#define POT_1_GPIO_Port         GPIOB
+#define PLED_0_Pin              GPIO_PIN_1
+#define PLED_0_GPIO_Port        GPIOB
+#define PLED_1_Pin              GPIO_PIN_2
+#define PLED_1_GPIO_Port        GPIOB
+#define LED_Pin                 GPIO_PIN_10
+#define LED_GPIO_Port           GPIOD
+#define EN_BT_Pin               GPIO_PIN_8
+#define EN_BT_GPIO_Port         GPIOC
+#define ENC_A_Pin               GPIO_PIN_8
+#define ENC_A_GPIO_Port         GPIOA
+#define ENC_B_Pin               GPIO_PIN_9
+#define ENC_B_GPIO_Port         GPIOA
+#define SPI3_DC_Pin             GPIO_PIN_0
+#define SPI3_DC_GPIO_Port       GPIOD
+#define SPI3_RES_Pin            GPIO_PIN_1
+#define SPI3_RES_GPIO_Port      GPIOD
+#define FT_2_Pin                GPIO_PIN_9
+#define FT_2_GPIO_Port          GPIOB
+#define FT_1_Pin                GPIO_PIN_0
+#define FT_1_GPIO_Port          GPIOE

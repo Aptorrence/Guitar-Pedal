@@ -1,0 +1,55 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceRoot}/build/dsp_pedal/app/blink/blink.elf",
+            "name": "DEBUG blink H743VI",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "device": "STM32H743VI",
+            "svdFile": "${workspaceRoot}/mcu_support/stm32/h7xx/STM32H743.svd",
+            "searchDir": [
+                "${workspaceRoot}/mcu_support/stm32"
+            ],
+            "runToMain": true,
+            "configFiles": [
+                "${workspaceRoot}/mcu_support/stm32/stlink-dap.cfg",
+                "${workspaceRoot}/mcu_support/stm32/h7xx/stm32h7x.cfg"
+            ],
+            "preRestartCommands": [
+                "add-symbol-file ${workspaceRoot}/build/dsp_pedal/app/blink/blink.elf",
+                "load",
+                "enable breakpoint",
+                "monitor reset"
+            ],
+            "showDevDebugOutput": true
+        },
+        {
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceRoot}/build/dsp_pedal/app/guitar_pedal/guitar_pedal.elf",
+            "name": "DEBUG guitar_pedal H743VI",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "device": "STM32H743VI",
+            "svdFile": "${workspaceRoot}/mcu_support/stm32/h7xx/STM32H743.svd",
+            "searchDir": [
+                "${workspaceRoot}/mcu_support/stm32"
+            ],
+            "runToMain": true,
+            "configFiles": [
+                "${workspaceRoot}/mcu_support/stm32/stlink-dap.cfg",
+                "${workspaceRoot}/mcu_support/stm32/h7xx/stm32h7x.cfg"
+            ],
+            "preRestartCommands": [
+                "add-symbol-file ${workspaceRoot}/build/dsp_pedal/app/guitar_pedal/guitar_pedal.elf",
+                "load",
+                "enable breakpoint",
+                "monitor reset"
+            ],
+            "showDevDebugOutput": true
+        }
+    ]
+}
