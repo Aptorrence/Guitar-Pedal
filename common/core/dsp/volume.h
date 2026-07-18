@@ -14,9 +14,15 @@ namespace dsp
     {
     public:
         /// Sets the gain from a normalized (0..1) control reading.
-        void set_linear(float linear01) { gain_ = audio_taper(linear01); }
+        void set_linear(float linear01)
+        {
+            gain_ = audio_taper(linear01);
+        }
 
-        float process(float sample) override { return sample * gain_; }
+        float process(float sample) override
+        {
+            return sample * gain_;
+        }
 
     private:
         float gain_ = 1.0f;

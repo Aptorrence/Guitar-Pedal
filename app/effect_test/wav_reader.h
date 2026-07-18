@@ -51,7 +51,8 @@ namespace test
         uint32_t chunk_size = 0;
         while (std::fread(chunk_id, 1, 4, file) == 4 && std::fread(&chunk_size, 4, 1, file) == 1)
         {
-            const long next_chunk = std::ftell(file) + static_cast<long>(chunk_size) + (chunk_size % 2);
+            const long next_chunk =
+                std::ftell(file) + static_cast<long>(chunk_size) + (chunk_size % 2);
 
             if (std::memcmp(chunk_id, "fmt ", 4) == 0)
             {

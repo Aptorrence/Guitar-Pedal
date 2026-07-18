@@ -25,7 +25,8 @@ namespace dsp
         return static_cast<float>(sample) / kQ24Max;
     }
 
-    /// Converts a float to a 24-bit sample packed in the low bits of a 32-bit word, clamping to [-1, 1].
+    /// Converts a float to a 24-bit sample packed in the low bits of a 32-bit word, clamping to
+    /// [-1, 1].
     inline int32_t float_to_q24(float sample)
     {
         const float clamped = std::clamp(sample, -1.0f, 1.0f);

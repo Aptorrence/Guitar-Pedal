@@ -26,9 +26,9 @@ namespace driver
             rx_buffer_ = rx_buffer;
 
             HAL_SAI_Transmit_DMA(tx_handle_, reinterpret_cast<uint8_t *>(tx_buffer_.data()),
-                                  static_cast<uint16_t>(tx_buffer_.size()));
+                                 static_cast<uint16_t>(tx_buffer_.size()));
             HAL_SAI_Receive_DMA(rx_handle_, reinterpret_cast<uint8_t *>(rx_buffer_.data()),
-                                 static_cast<uint16_t>(rx_buffer_.size()));
+                                static_cast<uint16_t>(rx_buffer_.size()));
         }
 
         void HalAudioStream::notify_half(size_t half_offset)
@@ -39,7 +39,8 @@ namespace driver
             }
 
             const size_t half_size = rx_buffer_.size() / 2;
-            callback_(rx_buffer_.subspan(half_offset, half_size), tx_buffer_.subspan(half_offset, half_size));
+            callback_(rx_buffer_.subspan(half_offset, half_size),
+                      tx_buffer_.subspan(half_offset, half_size));
         }
 
         void HalAudioStream::notify_rx_half_complete(SAI_HandleTypeDef *hsai)
