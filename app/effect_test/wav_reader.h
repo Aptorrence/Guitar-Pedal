@@ -19,8 +19,12 @@ namespace test
         std::vector<float> samples; // downmixed to mono, -1..1
     };
 
-    /// Reads a 16-bit PCM WAV file (mono or stereo; stereo is downmixed to mono
-    /// by averaging channels). Returns std::nullopt on any I/O or format error.
+    /**
+     * @brief Reads a 16-bit PCM WAV file (mono or stereo; stereo is downmixed to mono
+     *        by averaging channels).
+     * @param path Path to the WAV file to read.
+     * @return WavData on success, or std::nullopt on any I/O or format error.
+     */
     inline std::optional<WavData> read_wav_mono16(const char *path)
     {
         FILE *file = std::fopen(path, "rb");

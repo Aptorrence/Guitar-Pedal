@@ -19,11 +19,18 @@ namespace driver
     class AnalogInputArray
     {
     public:
-        /// Number of channels this array scans.
+        /**
+         * @brief Number of channels this array scans.
+         * @return Channel count.
+         */
         virtual size_t channel_count() const = 0;
 
-        /// Most recent reading for the given channel, scaled 0..UINT16_MAX
-        /// regardless of the underlying ADC's native resolution.
+        /**
+         * @brief Most recent reading for the given channel, scaled 0..UINT16_MAX
+         *        regardless of the underlying ADC's native resolution.
+         * @param channel Channel index to read.
+         * @return Most recent reading, scaled 0..UINT16_MAX.
+         */
         virtual uint16_t read(size_t channel) const = 0;
 
         ~AnalogInputArray() = default;

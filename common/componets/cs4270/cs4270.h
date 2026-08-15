@@ -24,44 +24,49 @@ namespace componets
     class Cs4270
     {
     public:
-        static constexpr uint8_t kI2cAddress = 0x48;
-        static constexpr uint8_t kDeviceId = 0xC0;
+        static constexpr uint8_t I2C_ADDRESS{0x48};
+        static constexpr uint8_t DEVICE_ID{0xC0};
 
         enum Register : uint8_t
         {
-            kRegDeviceId = 0x01,
-            kRegPowerControl = 0x02,
-            kRegModeControl = 0x03,
-            kRegAdcDacControl = 0x04,
-            kRegTransitionControl = 0x05,
-            kRegMuteControl = 0x06,
-            kRegDacAVolControl = 0x07,
-            kRegDacBVolControl = 0x08,
+            regDeviceId = 0x01,
+            regPowerControl = 0x02,
+            regModeControl = 0x03,
+            regAdcDacControl = 0x04,
+            regTransitionControl = 0x05,
+            regMuteControl = 0x06,
+            regDacAVolControl = 0x07,
+            regDacBVolControl = 0x08,
         };
 
         enum class Error : uint8_t
         {
-            kOk = 0,
-            kPowerDownFailed,
-            kDeviceIdMismatch,
-            kConfigWriteFailed,
-            kConfigReadbackFailed,
+            ok = 0,
+            powerDownFailed,
+            deviceIdMismatch,
+            configWriteFailed,
+            configReadbackFailed,
         };
 
         Cs4270(driver::I2c &i2c, driver::Gpio &nrst_gpio, driver::Delay &delay);
 
-        /// Resets the codec and writes/verifies the default configuration.
+        /**
+         * @brief Resets the codec and writes/verifies the default configuration.
+         * @return Error::ok on success, or the failure reason.
+         */
         Error init();
 
-        /// Pulses the hardware reset line.
+        /**
+         * @brief Pulses the hardware reset line.
+         */
         void reset();
 
         bool reg_write(uint8_t reg_addr, uint8_t data);
         bool reg_read(uint8_t reg_addr, uint8_t &data);
 
     private:
-        // Power-up defaults for kRegPowerControl..kRegDacBVolControl, in that order.
-        static constexpr std::array<uint8_t, 7> kDefaultConfig = {
+        // Power-up defaults for regPowerControl..regDacBVolControl, in that order.
+        static constexpr std::array<uint8_t, 7> DEFAULT_CONFIG{
             0x00, // Power up
             0x31, // Mode (slave, normal speed, pop guard enabled)
             0x09, // ADC/DAC (disable HPF, I2S)

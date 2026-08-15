@@ -74,7 +74,7 @@ The DSP-relevant pieces live in a few places:
 - **`boards/dsp_pedal/`** — the board support package: `bsp.h`/`bsp_h743.cpp` wire up the concrete CS4270 codec, SAI/DMA audio stream, ADC-scanned pots, and GPIOs behind the hardware-agnostic interfaces above. `board_pins.h` is generated from CubeIDE — don't hand-edit it, regenerate it there instead.
 - **`common/componets/cs4270/`** — the CS4270 codec driver (I2C register config + reset sequencing), hardware-agnostic over injected `driver::I2c`/`driver::Gpio`/`driver::Delay`.
 
-Sample rate is fixed at 44.1kHz (`kSampleRateHz` in `audio_engine.cpp`, must match `SAI_AUDIO_FREQUENCY_44K` in `bsp_h743.cpp`) and audio samples are moved as 24-bit-in-32-bit stereo-interleaved words — use `dsp::q24_to_float`/`dsp::float_to_q24` (`sample_convert.h`) at the edges of your effect code so the effects themselves just work in `-1..1` float.
+Sample rate is fixed at 44.1kHz (`SAMPLE_RATE_HZ` in `audio_engine.cpp`, must match `SAI_AUDIO_FREQUENCY_44K` in `bsp_h743.cpp`) and audio samples are moved as 24-bit-in-32-bit stereo-interleaved words — use `dsp::q24_to_float`/`dsp::float_to_q24` (`sample_convert.h`) at the edges of your effect code so the effects themselves just work in `-1..1` float.
 
 `audio_engine.cpp` also exposes `g_last_input_sample`/`g_last_output_sample` as non-static volatile globals specifically so you can watch them live by symbol name from a debugger (cortex-debug Live Expressions, etc.).
 

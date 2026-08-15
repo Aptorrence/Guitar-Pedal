@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [dsp_pedal, board_with_stm32l496zg]
+        preset: [dsp_pedal]
 
     steps:
       - name: Checkout code

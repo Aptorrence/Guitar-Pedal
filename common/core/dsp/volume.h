@@ -13,7 +13,10 @@ namespace dsp
     class Volume : public Effect
     {
     public:
-        /// Sets the gain from a normalized (0..1) control reading.
+        /**
+         * @brief Sets the gain from a normalized (0..1) control reading.
+         * @param linear01 Normalized (0..1) control reading.
+         */
         void set_linear(float linear01)
         {
             gain_ = audio_taper(linear01);

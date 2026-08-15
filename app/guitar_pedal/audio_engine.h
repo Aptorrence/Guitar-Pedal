@@ -9,12 +9,21 @@
 
 namespace audio_engine
 {
-    /// Owns the audio buffers, wires up the processing callback, and starts streaming.
+    /**
+     * @brief Owns the audio buffers, wires up the processing callback, and starts streaming.
+     * @param audio Audio stream to drive.
+     */
     void start(driver::AudioStream &audio);
 
-    /// Sets the output volume from a normalized (0..1) knob reading.
+    /**
+     * @brief Sets the output volume from a normalized (0..1) knob reading.
+     * @param linear01 Normalized (0..1) knob reading.
+     */
     void set_volume(float linear01);
 
-    /// Sets the noise gate threshold from a normalized (0..1) knob reading.
+    /**
+     * @brief Sets the noise gate threshold from a normalized (0..1) knob reading.
+     * @param linear01 Normalized (0..1) knob reading.
+     */
     void set_noise_gate_threshold(float linear01);
 } // namespace audio_engine
