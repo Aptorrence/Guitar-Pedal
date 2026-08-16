@@ -11,22 +11,22 @@ namespace bsp
     // Index order matches the ADC1 DMA scan (rank) order set up in MX_ADC1_Init.
     enum PotChannel : size_t
     {
-        kPot0 = 0,
-        kPot1,
-        kPot2,
-        kPot3,
-        kPot4,
-        kPot5,
-        kPot6,
-        kPot7,
-        kExpPedal,
-        kPotChannelCount,
+        pot0 = 0,
+        pot1,
+        pot2,
+        pot3,
+        pot4,
+        pot5,
+        pot6,
+        pot7,
+        expPedal,
+        potChannelCount,
     };
 
     // Measured end-stops of a pot's raw reading — this board's wiring never
     // actually reaches 0 at the low end. Pass these to dsp::normalize01().
-    constexpr uint16_t kPotRawMin = 1799;
-    constexpr uint16_t kPotRawMax = 65535;
+    constexpr uint16_t POT_RAW_MIN{1799};
+    constexpr uint16_t POT_RAW_MAX{65535};
 
     struct Board
     {
@@ -39,12 +39,12 @@ namespace bsp
         driver::Stmh7::HalGpio &pled5;
         driver::Stmh7::HalGpio &pled6;
         driver::Stmh7::HalGpio &pled7;
-        driver::Stmh7::HalGpio &kFtSw1;
-        driver::Stmh7::HalGpio &kFtSw2;
+        driver::Stmh7::HalGpio &ft_sw1;
+        driver::Stmh7::HalGpio &ft_sw2;
         driver::Stmh7::HalI2c &i2c1;
         componets::Cs4270 &codec;
         driver::Stmh7::HalAudioStream &audio;
-        driver::Stmh7::HalAdcInputArray<kPotChannelCount> &pots;
+        driver::Stmh7::HalAdcInputArray<potChannelCount> &pots;
     };
 
     void board_init();

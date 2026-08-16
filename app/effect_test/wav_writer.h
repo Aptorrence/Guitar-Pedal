@@ -10,6 +10,10 @@
 #include <cstdio>
 #include <span>
 
+/**
+ * @brief Writes a 16-bit mono PCM WAV file.
+ * @param path Path to the WAV file to write.
+ */
 namespace test
 {
     inline bool write_wav_mono16(const char *path, std::span<const float> samples,

@@ -20,10 +20,10 @@ namespace dsp
      * side to fill or drain. Which half is safe to touch is implied by which
      * half/complete event just fired — the buffer itself holds no state.
      */
-    template <typename T, size_t kHalfSize> class PingPongBuffer
+    template <typename T, size_t HALF_SIZE> class PingPongBuffer
     {
     public:
-        static constexpr size_t kTotalSize = kHalfSize * 2;
+        static constexpr size_t TOTAL_SIZE{HALF_SIZE * 2};
 
         T *data()
         {
@@ -34,16 +34,16 @@ namespace dsp
             return buffer_.data();
         }
 
-        std::span<T, kHalfSize> first_half()
+        std::span<T, HALF_SIZE> first_half()
         {
-            return std::span<T, kHalfSize>(buffer_.data(), kHalfSize);
+            return std::span<T, HALF_SIZE>(buffer_.data(), HALF_SIZE);
         }
-        std::span<T, kHalfSize> second_half()
+        std::span<T, HALF_SIZE> second_half()
         {
-            return std::span<T, kHalfSize>(buffer_.data() + kHalfSize, kHalfSize);
+            return std::span<T, HALF_SIZE>(buffer_.data() + HALF_SIZE, HALF_SIZE);
         }
 
     private:
-        std::array<T, kTotalSize> buffer_{};
+        std::array<T, TOTAL_SIZE> buffer_{};
     };
 } // namespace dsp

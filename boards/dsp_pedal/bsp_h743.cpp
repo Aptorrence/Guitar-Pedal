@@ -699,8 +699,8 @@ static driver::Stmh7::HalGpio pled5(PLED_5_GPIO_Port, PLED_5_Pin);
 static driver::Stmh7::HalGpio pled6(PLED_6_GPIO_Port, PLED_6_Pin);
 static driver::Stmh7::HalGpio pled7(PLED_7_GPIO_Port, PLED_7_Pin);
 
-static driver::Stmh7::HalGpio kFtSw1(FT_1_GPIO_Port, FT_1_Pin);
-static driver::Stmh7::HalGpio kFtSw2(FT_2_GPIO_Port, FT_2_Pin);
+static driver::Stmh7::HalGpio ft_sw1(FT_1_GPIO_Port, FT_1_Pin);
+static driver::Stmh7::HalGpio ft_sw2(FT_2_GPIO_Port, FT_2_Pin);
 
 static driver::Stmh7::HalI2c i2c1(&hi2c1);
 
@@ -712,7 +712,7 @@ static componets::Cs4270 codec(i2c1, codec_nrst, delay);
 
 static driver::Stmh7::HalAudioStream audio(&hsai_BlockA1, &hsai_BlockB1);
 
-static driver::Stmh7::HalAdcInputArray<bsp::kPotChannelCount> pots(&hadc1);
+static driver::Stmh7::HalAdcInputArray<bsp::potChannelCount> pots(&hadc1);
 
 static bsp::Board board{.led = led,
                         .pled0 = pled0,
@@ -723,8 +723,8 @@ static bsp::Board board{.led = led,
                         .pled5 = pled5,
                         .pled6 = pled6,
                         .pled7 = pled7,
-                        .kFtSw1 = kFtSw1,
-                        .kFtSw2 = kFtSw2,
+                        .ft_sw1 = ft_sw1,
+                        .ft_sw2 = ft_sw2,
                         .i2c1 = i2c1,
                         .codec = codec,
                         .audio = audio,
