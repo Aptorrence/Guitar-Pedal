@@ -1,8 +1,12 @@
 add_library(hal_h7 STATIC
     hal_gpio.cc
+    st_gpio.cc
     hal_i2c.cc
+    st_i2c.cc
     hal_spi.cc
     hal_delay.cc
+    hal_clock.cc
+    st_systick.cc
     hal_audio_stream.cc
 )
 

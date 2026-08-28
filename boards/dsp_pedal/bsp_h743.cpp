@@ -1,19 +1,14 @@
 #include "bsp.h"
 #include "board_pins.h"
-#include "hal_delay.h"
 #include "stm32h7xx_hal.h"
 
 // HAL peripheral handles — used by the MX init functions below
 ADC_HandleTypeDef hadc1;
-I2C_HandleTypeDef hi2c1;
-SPI_HandleTypeDef hspi3;
 SAI_HandleTypeDef hsai_BlockA1;
 SAI_HandleTypeDef hsai_BlockB1;
 DMA_HandleTypeDef hdma_sai1_a;
 DMA_HandleTypeDef hdma_sai1_b;
 DMA_HandleTypeDef hdma_adc1;
-TIM_HandleTypeDef htim1;
-TIM_HandleTypeDef htim6;
 
 static void Error_Handler()
 {
@@ -139,63 +134,6 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
-    /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOC, CODEC_NRST_Pin | PLED_7_Pin | PLED_6_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, PLED_5_Pin | PLED_4_Pin | PWLED_3_Pin | PWLED_2_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, PLED_0_Pin | PLED_1_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOD, LED_Pin | SPI3_DC_Pin | SPI3_RES_Pin, GPIO_PIN_RESET);
-
-    /*Configure GPIO pins : CODEC_NRST_Pin PLED_7_Pin PLED_6_Pin */
-    GPIO_InitStruct.Pin = CODEC_NRST_Pin | PLED_7_Pin | PLED_6_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : PLED_5_Pin PLED_4_Pin PWLED_3_Pin PWLED_2_Pin */
-    GPIO_InitStruct.Pin = PLED_5_Pin | PLED_4_Pin | PWLED_3_Pin | PWLED_2_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : PLED_0_Pin PLED_1_Pin */
-    GPIO_InitStruct.Pin = PLED_0_Pin | PLED_1_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    /*Configure GPIO pins : LED_Pin SPI3_DC_Pin SPI3_RES_Pin */
-    GPIO_InitStruct.Pin = LED_Pin | SPI3_DC_Pin | SPI3_RES_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-    /*Configure GPIO pin : EN_BT_Pin */
-    GPIO_InitStruct.Pin = EN_BT_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(EN_BT_GPIO_Port, &GPIO_InitStruct);
-
-    /*Configure GPIO pin : FT_2_Pin */
-    GPIO_InitStruct.Pin = FT_2_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(FT_2_GPIO_Port, &GPIO_InitStruct);
-
-    /*Configure GPIO pin : FT_1_Pin */
-    GPIO_InitStruct.Pin = FT_1_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(FT_1_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pins : PB6 PB7 (I2C1_SCL I2C1_SDA) */
     GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
@@ -428,54 +366,12 @@ static void MX_ADC1_Init(void)
 
 static void MX_I2C1_Init(void)
 {
-    /* USER CODE BEGIN I2C1_Init 0 */
-
-    /* USER CODE END I2C1_Init 0 */
-
-    /* USER CODE BEGIN I2C1_Init 1 */
-
-    /* USER CODE END I2C1_Init 1 */
-
-    /* Peripheral clock enable */
+    /* Kernel clock enable only; HwI2c::init() owns TIMINGR + peripheral enable.
+       CubeMX also configured 0x40000A0B timing and the on-by-default analog
+       filter, which the register driver reproduces. */
     __HAL_RCC_I2C1_CLK_ENABLE();
-
-    hi2c1.Instance = I2C1;
-    hi2c1.Init.Timing = 0x40000A0B;
-    hi2c1.Init.OwnAddress1 = 0;
-    hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-    hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-    hi2c1.Init.OwnAddress2 = 0;
-    hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-    hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-    hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-    if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-    /** Configure Analogue filter
-     */
-    if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-    /** Configure Digital filter
-     */
-    if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    /* USER CODE BEGIN I2C1_Init 2 */
-
-    /* USER CODE END I2C1_Init 2 */
 }
 
-/**
- * @brief SAI1 Initialization Function
- * @param None
- * @retval None
- */
 static void MX_SAI1_Init(void)
 {
 
@@ -561,154 +457,60 @@ static void MX_SAI1_Init(void)
     /* USER CODE END SAI1_Init 2 */
 }
 
-static void MX_SPI3_Init(void)
-{
-    // TODO: paste from CubeIDE
-
-    /* USER CODE BEGIN SPI3_Init 0 */
-
-    /* USER CODE END SPI3_Init 0 */
-
-    /* USER CODE BEGIN SPI3_Init 1 */
-
-    /* USER CODE END SPI3_Init 1 */
-    /* SPI3 parameter configuration*/
-    hspi3.Instance = SPI3;
-    hspi3.Init.Mode = SPI_MODE_MASTER;
-    hspi3.Init.Direction = SPI_DIRECTION_2LINES_TXONLY;
-    hspi3.Init.DataSize = SPI_DATASIZE_4BIT;
-    hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
-    hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi3.Init.NSS = SPI_NSS_HARD_OUTPUT;
-    hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-    hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
-    hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-    hspi3.Init.CRCPolynomial = 0x0;
-    hspi3.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
-    hspi3.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
-    hspi3.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
-    hspi3.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-    hspi3.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-    hspi3.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
-    hspi3.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
-    hspi3.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
-    hspi3.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
-    hspi3.Init.IOSwap = SPI_IO_SWAP_DISABLE;
-    if (HAL_SPI_Init(&hspi3) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    /* USER CODE BEGIN SPI3_Init 2 */
-
-    /* USER CODE END SPI3_Init 2 */
-}
-
-static void MX_TIM1_Init(void)
-{
-    // TODO: paste from CubeIDE
-
-    /* USER CODE BEGIN TIM1_Init 0 */
-
-    /* USER CODE END TIM1_Init 0 */
-
-    TIM_Encoder_InitTypeDef sConfig = {0};
-    TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-    /* USER CODE BEGIN TIM1_Init 1 */
-
-    /* USER CODE END TIM1_Init 1 */
-    htim1.Instance = TIM1;
-    htim1.Init.Prescaler = 0;
-    htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim1.Init.Period = 65535;
-    htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    htim1.Init.RepetitionCounter = 0;
-    htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-    sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-    sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-    sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-    sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-    sConfig.IC1Filter = 0;
-    sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-    sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-    sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-    sConfig.IC2Filter = 0;
-    if (HAL_TIM_Encoder_Init(&htim1, &sConfig) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
-    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    /* USER CODE BEGIN TIM1_Init 2 */
-
-    /* USER CODE END TIM1_Init 2 */
-}
-
-static void MX_TIM6_Init(void)
-{
-    // TODO: paste from CubeIDE
-
-    /* USER CODE BEGIN TIM6_Init 0 */
-
-    /* USER CODE END TIM6_Init 0 */
-
-    TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-    /* USER CODE BEGIN TIM6_Init 1 */
-
-    /* USER CODE END TIM6_Init 1 */
-    htim6.Instance = TIM6;
-    htim6.Init.Prescaler = 99;
-    htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim6.Init.Period = 47999;
-    htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-    if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    /* USER CODE BEGIN TIM6_Init 2 */
-
-    /* USER CODE END TIM6_Init 2 */
-}
-
 // =============================================================================
 // BOARD OBJECTS
-// Constructed after HAL init. HAL owns pin configuration via the MX functions
-// above; these wrappers only need the port/pin/handle for runtime operations.
+// Constructed after HAL init. The digital GPIO lines are driven by the
+// register-level driver::Stmh7::HwGpio driver and configure themselves in
+// board_init() via HwGpio::init(); MX_GPIO_Init() still owns the peripheral pin
+// muxing (I2C, SAI, ADC) and the GPIO port clock enables.
 // =============================================================================
 
-static driver::Stmh7::HalGpio led(LED_GPIO_Port, LED_Pin);
-static driver::Stmh7::HalGpio pled0(PLED_0_GPIO_Port, PLED_0_Pin);
-static driver::Stmh7::HalGpio pled1(PLED_1_GPIO_Port, PLED_1_Pin);
-static driver::Stmh7::HalGpio pled2(PWLED_2_GPIO_Port, PWLED_2_Pin);
-static driver::Stmh7::HalGpio pled3(PWLED_3_GPIO_Port, PWLED_3_Pin);
-static driver::Stmh7::HalGpio pled4(PLED_4_GPIO_Port, PLED_4_Pin);
-static driver::Stmh7::HalGpio pled5(PLED_5_GPIO_Port, PLED_5_Pin);
-static driver::Stmh7::HalGpio pled6(PLED_6_GPIO_Port, PLED_6_Pin);
-static driver::Stmh7::HalGpio pled7(PLED_7_GPIO_Port, PLED_7_Pin);
+/** GPIO port clocks are enabled by MX_GPIO_Init(); HwGpio only touches the port registers. */
+static driver::Stmh7::StGpioParams out_pin(GPIO_TypeDef *port, uint8_t pin_num)
+{
+    return driver::Stmh7::StGpioParams{
+        .settings = {driver::Stmh7::GpioMode::GPOUT, driver::Stmh7::GpioOtype::PUSH_PULL,
+                     driver::Stmh7::GpioOspeed::LOW, driver::Stmh7::GpioPupd::NO_PULL, 0},
+        .pin_num = pin_num,
+        .base_addr = port,
+    };
+}
 
-static driver::Stmh7::HalGpio ft_sw1(FT_1_GPIO_Port, FT_1_Pin);
-static driver::Stmh7::HalGpio ft_sw2(FT_2_GPIO_Port, FT_2_Pin);
+static driver::Stmh7::StGpioParams in_pin(GPIO_TypeDef *port, uint8_t pin_num,
+                                          driver::Stmh7::GpioPupd pupd)
+{
+    return driver::Stmh7::StGpioParams{
+        .settings = {driver::Stmh7::GpioMode::INPUT, driver::Stmh7::GpioOtype::PUSH_PULL,
+                     driver::Stmh7::GpioOspeed::LOW, pupd, 0},
+        .pin_num = pin_num,
+        .base_addr = port,
+    };
+}
 
-static driver::Stmh7::HalI2c i2c1(&hi2c1);
+static driver::Stmh7::HwGpio led(out_pin(GPIOD, 10));      // PD10
+static driver::Stmh7::HwGpio pled0(out_pin(GPIOB, 1));     // PB1  PLED_0
+static driver::Stmh7::HwGpio pled1(out_pin(GPIOB, 2));     // PB2  PLED_1
+static driver::Stmh7::HwGpio pled2(out_pin(GPIOA, 7));     // PA7  PWLED_2
+static driver::Stmh7::HwGpio pled3(out_pin(GPIOA, 5));     // PA5  PWLED_3
+static driver::Stmh7::HwGpio pled4(out_pin(GPIOA, 1));     // PA1  PLED_4
+static driver::Stmh7::HwGpio pled5(out_pin(GPIOA, 0));     // PA0  PLED_5
+static driver::Stmh7::HwGpio pled6(out_pin(GPIOC, 3));     // PC3  PLED_6
+static driver::Stmh7::HwGpio pled7(out_pin(GPIOC, 2));     // PC2  PLED_7
 
-static driver::Stmh7::HalGpio codec_nrst(CODEC_NRST_GPIO_Port, CODEC_NRST_Pin);
+static driver::Stmh7::HwGpio ft_sw1(in_pin(GPIOE, 0, driver::Stmh7::GpioPupd::PULL_UP)); // PE0 FT_1
+static driver::Stmh7::HwGpio ft_sw2(in_pin(GPIOB, 9, driver::Stmh7::GpioPupd::PULL_UP)); // PB9 FT_2
 
-static driver::Stmh7::HalDelay delay;
+static driver::Stmh7::HwI2c i2c1({.base_addr = I2C1, .timingr = 0x40000A0B});
 
-static componets::Cs4270 codec(i2c1, codec_nrst, delay);
+static driver::Stmh7::HwGpio codec_nrst(out_pin(GPIOC, 13)); // PC13 CODEC_NRST
+
+static driver::Stmh7::HwGpio *const digital_gpio[] = {&led,   &pled0, &pled1, &pled2,
+                                                      &pled3, &pled4, &pled5, &pled6,
+                                                      &pled7, &ft_sw1, &ft_sw2, &codec_nrst};
+
+static driver::Stmh7::HwSysTick systick;
+
+static componets::Cs4270 codec(i2c1, codec_nrst, systick);
 
 static driver::Stmh7::HalAudioStream audio(&hsai_BlockA1, &hsai_BlockB1);
 
@@ -728,7 +530,8 @@ static bsp::Board board{.led = led,
                         .i2c1 = i2c1,
                         .codec = codec,
                         .audio = audio,
-                        .pots = pots};
+                        .pots = pots,
+                        .clock = systick};
 
 // =============================================================================
 // INIT — mirrors CubeIDE main() exactly; HAL owns peripheral setup
@@ -738,11 +541,27 @@ namespace bsp
 {
     void board_init()
     {
-        HAL_Init();
+        HAL_Init(); // also arms SysTick for the 1 kHz timebase (HAL_InitTick)
         SystemClock_Config();
         PeriphCommonClock_Config();
-        MX_GPIO_Init();
+        MX_GPIO_Init(); // port clock enables + peripheral (I2C/SAI/ADC) pin muxing
+
+        if (!systick.init())
+        {
+            Error_Handler();
+        }
+
+        for (driver::Stmh7::HwGpio *gpio : digital_gpio)
+        {
+            gpio->init();
+        }
+
         MX_I2C1_Init();
+        if (!i2c1.init())
+        {
+            Error_Handler();
+        }
+
         MX_DMA_Init();
         MX_SAI1_Init();
         MX_ADC1_Init();
@@ -753,13 +572,6 @@ namespace bsp
         }
     }
 
-    /* void board_init()
-     {
-         MX_TIM1_Init();
-         MX_SPI3_Init();
-         MX_TIM6_Init();
-     }
- */
     Board &get_board()
     {
         return board;

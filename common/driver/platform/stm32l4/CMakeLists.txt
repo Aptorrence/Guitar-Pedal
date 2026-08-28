@@ -6,8 +6,6 @@ add_library(hal STATIC
 
 target_include_directories(hal PUBLIC
     .
-    ${CMAKE_SOURCE_DIR}/common/core/utils
-    
 )
 
 target_link_libraries(hal PUBLIC

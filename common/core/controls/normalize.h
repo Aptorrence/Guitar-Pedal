@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cstdint>
 
-namespace dsp
+namespace controls
 {
     /**
      * @brief Maps raw from [min, max] to [0, 1], clamping if raw falls outside that range
@@ -24,4 +24,4 @@ namespace dsp
         const float scaled = (static_cast<float>(raw) - static_cast<float>(min)) / span;
         return std::clamp(scaled, 0.0f, 1.0f);
     }
-} // namespace dsp
+} // namespace controls

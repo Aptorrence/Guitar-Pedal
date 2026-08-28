@@ -6,7 +6,7 @@ add_executable(${EXECUTABLE}
     audio_engine.cpp
 )
 
-target_link_libraries(${EXECUTABLE} PRIVATE bsp dsp)
+target_link_libraries(${EXECUTABLE} PRIVATE bsp dsp controls)
 
 add_custom_command(TARGET ${EXECUTABLE} POST_BUILD
   COMMAND ${CMAKE_OBJCOPY} -O ihex   $<TARGET_FILE:${EXECUTABLE}> ${EXECUTABLE}.hex
