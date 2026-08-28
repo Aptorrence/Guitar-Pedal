@@ -9,12 +9,13 @@ add_library(driver INTERFACE)
 target_include_directories(driver INTERFACE
     bus
     io
+    time
 )
 
 if(NOT "${BOARD}" STREQUAL "NATIVE")
     if ("${MCU_FAMILY}" STREQUAL "STM32H7")
-        target_link_libraries(driver INTERFACE hal_h7 utils)
+        target_link_libraries(driver INTERFACE hal_h7)
     else()
-        target_link_libraries(driver INTERFACE hal utils)
+        target_link_libraries(driver INTERFACE hal)
     endif()
 endif()

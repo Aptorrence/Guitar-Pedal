@@ -15,7 +15,7 @@ namespace dsp
     constexpr float Q24_MAX{8388607.0f}; // 2^23 - 1
 
     /**
-     * @brief Converts a 24-bit sample packed in the low bits of a 32-bit word to a float in [-1, 1].
+     * @brief Converts a 24-bit sample packedthe low bits of a 32-bit word to a float [-1,1].
      * @param sample Packed 24-bit sample in the low bits of a 32-bit word.
      * @return Float sample in [-1, 1].
      */

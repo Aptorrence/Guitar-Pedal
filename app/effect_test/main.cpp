@@ -1,6 +1,8 @@
-#include "noise_gate.h"
-#include "volume.h"
-#include "delay.h"
+#include "effects/noise_gate.h"
+#include "effects/volume.h"
+#include "effects/delay_effect.h"
+#include "effects/fuzz.h"
+#include "effects/tremolo.h"
 #include "wav_reader.h"
 #include "wav_writer.h"
 #include <cmath>
@@ -70,7 +72,24 @@ int main(int argc, char **argv)
      * bit
      * @param delay_time_ms how long delay is
      */
-    dsp::Delay<41200> delay(500.0f, 0.5f, 0.5f, sample_rate_hz);
+    dsp::Delay<41200> delay(20.0f, 0.5f, 0.5f, sample_rate_hz);
+
+    /**
+     * fuzz Placeholder tuning.
+     * fuzz(threshold, clip, crunch);
+     * @param threshold input magnitude below which the curve is linear
+     * @param clip output magnitude the signal is clamped to
+     * @param crunch extra gain applied inside the linear region
+     */
+    dsp::Fuzz fuzz(0.2f, 0.9f, 1.0f);
+
+    /**
+     * tremolo Placeholder tuning.
+     * tremolo(mix, lfo_frequency_hz, sample_rate_hz);
+     * @param mix modulation depth 0..1
+     * @param lfo_frequency_hz sweep rate of the amplitude LFO
+     */
+    dsp::Tremolo tremolo(0.5f, 4.0f, sample_rate_hz);
 
     /**
      * volume Placeholder tuning 100%.
@@ -83,7 +102,9 @@ int main(int argc, char **argv)
     {
         const float gated = noise_gate.process(input[i]);
         const float delayed = delay.process(gated);
-        output[i] = volume.process(delayed);
+        const float fuzzed = fuzz.process(delayed);
+        const float tremmed = tremolo.process(fuzzed);
+        output[i] = volume.process(tremmed);
     }
 
     test::write_wav_mono16("input.wav", input, static_cast<uint32_t>(sample_rate_hz));
