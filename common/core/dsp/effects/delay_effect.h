@@ -51,8 +51,7 @@ namespace dsp
         void set_delay_time(float delay_time_ms, float sample_rate_hz)
         {
             const float requested = 0.001f * delay_time_ms * sample_rate_hz;
-            const float clamped =
-                std::clamp(requested, 1.0f, static_cast<float>(MAX_LINE_LENGTH));
+            const float clamped = std::clamp(requested, 1.0f, static_cast<float>(MAX_LINE_LENGTH));
             length_smoother_.set_target(clamped);
         }
 
@@ -74,8 +73,7 @@ namespace dsp
         {
             const float mix = mix_smoother_.next();
             const float feedback = feedback_smoother_.next();
-            const size_t line_length =
-                static_cast<size_t>(std::lround(length_smoother_.next()));
+            const size_t line_length = static_cast<size_t>(std::lround(length_smoother_.next()));
 
             const float delay_out = line_[line_index_];
             const float delay_in = std::clamp(sample + feedback * delay_out, -4.0f, 4.0f);

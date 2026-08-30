@@ -14,8 +14,8 @@ namespace driver
             void start_transfer(I2C_TypeDef *i2c, uint8_t dev_addr, std::size_t nbytes,
                                 uint32_t direction)
             {
-                i2c->CR2 &= ~(I2C_CR2_SADD_Msk | I2C_CR2_RD_WRN | I2C_CR2_NBYTES_Msk |
-                              I2C_CR2_AUTOEND);
+                i2c->CR2 &=
+                    ~(I2C_CR2_SADD_Msk | I2C_CR2_RD_WRN | I2C_CR2_NBYTES_Msk | I2C_CR2_AUTOEND);
                 i2c->CR2 |= ((static_cast<uint32_t>(dev_addr) << (I2C_CR2_SADD_Pos + ADDR_SHIFT)) |
                              direction | I2C_CR2_START | I2C_CR2_AUTOEND |
                              (static_cast<uint32_t>(nbytes) << I2C_CR2_NBYTES_Pos));

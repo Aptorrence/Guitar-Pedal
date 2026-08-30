@@ -28,8 +28,8 @@ namespace dsp
              * 1000*ln(9): converts a 10%-90% rise time in ms into a one-pole coefficient.
              */
             constexpr float TIME_CONST_90_10{2197.22457734f};
-            coeff_ = (time_ms <= 0.0f) ? 0.0f
-                                       : std::exp(-TIME_CONST_90_10 / (sample_rate_hz * time_ms));
+            coeff_ =
+                (time_ms <= 0.0f) ? 0.0f : std::exp(-TIME_CONST_90_10 / (sample_rate_hz * time_ms));
         }
 
         /**

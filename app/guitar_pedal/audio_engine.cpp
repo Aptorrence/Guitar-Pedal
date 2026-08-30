@@ -17,7 +17,7 @@ namespace audio_engine
                                    2}; // stereo interleaved samples, 24-bit-in-32-bit slots
 
         /**
-            Real sampleing frequency 
+            Real sampleing frequency
          */
         constexpr float SAMPLE_RATE_HZ{44117.0f};
 
@@ -30,7 +30,7 @@ namespace audio_engine
          * noise_gate(threshold%, attack_ms, release_ms, hold_ms, sample_rate_hz);
          * @param threshold what the noise threshold is to turn off/on sound
          * @param attack_ms time constant for attack of noise gate (sound gated (quiet))
-         * @param release_ms time constant for release of noise gate (sound passes) 
+         * @param release_ms time constant for release of noise gate (sound passes)
          */
         dsp::NoiseGate noise_gate{0.05f, 5.0f, 5.0f, 10.0f, SAMPLE_RATE_HZ};
 
@@ -52,12 +52,12 @@ namespace audio_engine
          */
         dsp::Fuzz fuzz(0.2f, 0.9f, 1.0f);
 
-         /**
-          * tremolo Placeholder tuning.
-          * tremolo(mix, lfo_frequency_hz, sample_rate_hz);
-          * @param mix modulation depth 0..1
-          * @param lfo_frequency_hz sweep rate of the amplitude LFO
-          */
+        /**
+         * tremolo Placeholder tuning.
+         * tremolo(mix, lfo_frequency_hz, sample_rate_hz);
+         * @param mix modulation depth 0..1
+         * @param lfo_frequency_hz sweep rate of the amplitude LFO
+         */
         dsp::Tremolo tremolo(0.5f, 4.0f, SAMPLE_RATE_HZ);
 
         /**
@@ -68,6 +68,9 @@ namespace audio_engine
         bool fw1_enabled = false;
         bool fw2_enabled = false;
 
+        /** Last sample written to tx_half, for inspection in a debugger. */
+        float debug_out = 0.0f;
+        float debug_in = 0.0f;
         /**
          * *******************************************************************
          * Main processing function and signal chain:
@@ -81,11 +84,13 @@ namespace audio_engine
             for (size_t i = 0; i < rx_half.size(); ++i)
             {
                 float sample = dsp::q24_to_float(rx_half[i]);
+                debug_in = sample;
                 sample = noise_gate.process(sample);
                 sample = fw1_enabled ? fuzz.process(sample) : sample;
-                //sample = fw1_enabled ? delay.process(sample) : sample;
+                // sample = fw1_enabled ? delay.process(sample) : sample;
                 sample = fw2_enabled ? tremolo.process(sample) : sample;
                 const float out = volume.process(sample);
+                debug_out = out;
                 tx_half[i] = dsp::float_to_q24(out);
             }
         }
