@@ -8,7 +8,7 @@ namespace
 {
     constexpr uint32_t CONTROL_INTERVAL_MS{100};
     constexpr float CONTROL_RATE_HZ{1000.0f / static_cast<float>(CONTROL_INTERVAL_MS)};
-    constexpr float KNOB_SMOOTH_MS{150.0f};
+    constexpr float KNOB_SMOOTH_MS{0.0f};
     constexpr float KNOB_DEADBAND{0.002f};
 
     std::array<controls::KnobFilter, bsp::potChannelCount> knob_filters;
@@ -83,8 +83,6 @@ int main()
             board.pled6.set(true);
 
             float knob7 = read_knob(board, bsp::pot7);
-            // audio_engine::set_fuzz_clip(knob2);
-            // board.pled2.set(true);
             // audio_engine::set_delay_feedback(knob7);
 
             const bool fw1 = board.ft_sw1.read();

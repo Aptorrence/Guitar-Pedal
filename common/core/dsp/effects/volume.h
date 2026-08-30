@@ -22,7 +22,7 @@ namespace dsp
             gain_ = audio_taper(linear01);
         }
 
-        float process(float sample) override
+        float processBlock(float sample) override
         {
             return sample * gain_;
         }

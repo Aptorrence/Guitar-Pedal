@@ -37,7 +37,7 @@ namespace dsp
             release_coeff_ = std::exp(-TIME_CONST_90_10 / (sample_rate_hz * release_ms));
         }
 
-        float process(float sample) override
+        float processBlock(float sample) override
         {
             const float input_abs = std::fabs(sample);
             const float gain = (input_abs < threshold_) ? 0.0f : 1.0f;
