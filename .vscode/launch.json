@@ -49,6 +49,10 @@
                 "enable breakpoint",
                 "monitor reset"
             ],
+            "liveWatch": {
+                "enabled": true,
+                "samplesPerSecond": 10
+            },
             "showDevDebugOutput": true
         }
     ]

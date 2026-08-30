@@ -45,6 +45,10 @@ Additionally, grab the cortex-debug extension for VSCode.
 
 `.vscode/launch.json` already has working debug configs for `blink` and `guitar_pedal` on the H743VI — just build the target first (see above), then launch the matching config from the Run and Debug panel.
 
+## Live-plotting a variable (e.g. audio signal levels)
+
+`scripts/plot_debug_out.py` polls a variable's value straight out of MCU RAM over OpenOCD's telnet interface and live-plots it with matplotlib. Handy for watching signal levels while you play. This is a **polling** read, not a real trace capture — fine for watching envelope/level trends, not exact waveform shape since it only runs at around 500hz.`scripts/README.md` for more info.
+
 ## Developing DSP on this board
 
 Relevant pieces live in a few places:
