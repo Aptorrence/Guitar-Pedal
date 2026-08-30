@@ -100,11 +100,11 @@ int main(int argc, char **argv)
     std::vector<float> output(input.size());
     for (size_t i = 0; i < input.size(); ++i)
     {
-        const float gated = noise_gate.process(input[i]);
-        const float delayed = delay.process(gated);
-        const float fuzzed = fuzz.process(delayed);
-        const float tremmed = tremolo.process(fuzzed);
-        output[i] = volume.process(tremmed);
+        const float gated = noise_gate.processBlock(input[i]);
+        const float delayed = delay.processBlock(gated);
+        const float fuzzed = fuzz.processBlock(delayed);
+        const float tremmed = tremolo.processBlock(fuzzed);
+        output[i] = volume.processBlock(tremmed);
     }
 
     test::write_wav_mono16("input.wav", input, static_cast<uint32_t>(sample_rate_hz));

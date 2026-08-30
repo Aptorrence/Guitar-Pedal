@@ -64,7 +64,7 @@ namespace dsp
             lfo_count_ = std::clamp(lfo_count_, -lfo_count_limit_, lfo_count_limit_);
         }
 
-        float process(float sample) override
+        float processBlock(float sample) override
         {
             const float lfo = lfo_count_ / lfo_count_limit_;
             const float gain = (1.0f - mix_) + mix_ * lfo;

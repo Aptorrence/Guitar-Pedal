@@ -19,7 +19,7 @@ namespace dsp
     class Effect
     {
     public:
-        virtual float process(float sample) = 0;
+        virtual float processBlock(float sample) = 0;
 
         virtual ~Effect() = default;
     };

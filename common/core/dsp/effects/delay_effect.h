@@ -69,7 +69,7 @@ namespace dsp
             feedback_smoother_.set_target(std::clamp(feedback, 0.0f, MAX_FEEDBACK));
         }
 
-        float process(float sample) override
+        float processBlock(float sample) override
         {
             const float mix = mix_smoother_.next();
             const float feedback = feedback_smoother_.next();

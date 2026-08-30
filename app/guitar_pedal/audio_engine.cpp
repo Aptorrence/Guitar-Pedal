@@ -1,4 +1,5 @@
 #include "audio_engine.h"
+#include "audio_taper.h"
 #include "effects/noise_gate.h"
 #include "effects/volume.h"
 #include "effects/delay_effect.h"
@@ -63,7 +64,7 @@ namespace audio_engine
         /**
          * Footswitch-controlled bypass for the two optional stages. Latched from
          * the control loop (see set_fw1_enabled / set_fw2_enabled) and read once
-         * per block by process().
+         * per block by processBlock().
          */
         bool fw1_enabled = false;
         bool fw2_enabled = false;
@@ -79,17 +80,17 @@ namespace audio_engine
          * *******************************************************************
          */
 
-        void process(std::span<int32_t> rx_half, std::span<int32_t> tx_half)
+        void processBlock(std::span<int32_t> rx_half, std::span<int32_t> tx_half)
         {
             for (size_t i = 0; i < rx_half.size(); ++i)
             {
                 float sample = dsp::q24_to_float(rx_half[i]);
                 debug_in = sample;
-                sample = noise_gate.process(sample);
-                sample = fw1_enabled ? fuzz.process(sample) : sample;
-                // sample = fw1_enabled ? delay.process(sample) : sample;
-                sample = fw2_enabled ? tremolo.process(sample) : sample;
-                const float out = volume.process(sample);
+                sample = noise_gate.processBlock(sample);
+                sample = fw1_enabled ? fuzz.processBlock(sample) : sample;
+                // sample = fw1_enabled ? delay.processBlock(sample) : sample;
+                sample = fw2_enabled ? tremolo.processBlock(sample) : sample;
+                const float out = volume.processBlock(sample);
                 debug_out = out;
                 tx_half[i] = dsp::float_to_q24(out);
             }
@@ -98,7 +99,7 @@ namespace audio_engine
 
     void start(driver::AudioStream &audio)
     {
-        audio.set_process_callback(process);
+        audio.set_process_callback(processBlock);
         audio.start(std::span<int32_t>(tx_buf.data(), tx_buf.TOTAL_SIZE),
                     std::span<int32_t>(rx_buf.data(), rx_buf.TOTAL_SIZE));
     }
