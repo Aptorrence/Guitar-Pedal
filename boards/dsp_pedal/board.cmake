@@ -18,7 +18,7 @@ set(BOARD_DEFINES
 
 # include cmsis and mcu specific .h files
 set(BOARD_INCLUDE_DIRS
-  "${CMAKE_SOURCE_DIR}/mcu_support/CMSIS/include"
+  "${CMAKE_SOURCE_DIR}/mcu_support/CMSIS/Include"
   "${CMAKE_SOURCE_DIR}/mcu_support/stm32/h7xx/include"
   "${CMAKE_SOURCE_DIR}/mcu_support/stm32/h7xx/h743/include"
   "${CMAKE_SOURCE_DIR}/mcu_support/stm32/h7xx/HAL"

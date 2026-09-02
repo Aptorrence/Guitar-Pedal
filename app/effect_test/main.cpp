@@ -5,8 +5,10 @@
 #include "effects/tremolo.h"
 #include "wav_reader.h"
 #include "wav_writer.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <span>
 #include <vector>
 
 namespace
@@ -97,14 +99,23 @@ int main(int argc, char **argv)
     dsp::Volume volume;
     volume.set_linear(1.0f);
 
-    std::vector<float> output(input.size());
-    for (size_t i = 0; i < input.size(); ++i)
+    /**
+     * Process in fixed-size blocks so this exercises the same block-at-a-time path
+     * as the real engine. The chain is feed-forward, so running each effect across a
+     * whole block before the next produces the same output as a per-sample chain.
+     */
+    constexpr size_t BLOCK_SIZE{64};
+    std::vector<float> output = input;
+    for (size_t start = 0; start < output.size(); start += BLOCK_SIZE)
     {
-        const float gated = noise_gate.processBlock(input[i]);
-        const float delayed = delay.processBlock(gated);
-        const float fuzzed = fuzz.processBlock(delayed);
-        const float tremmed = tremolo.processBlock(fuzzed);
-        output[i] = volume.processBlock(tremmed);
+        const size_t n = std::min(BLOCK_SIZE, output.size() - start);
+        const std::span<float> block(output.data() + start, n);
+
+        noise_gate.processBlock(block);
+        delay.processBlock(block);
+        fuzz.processBlock(block);
+        tremolo.processBlock(block);
+        volume.processBlock(block);
     }
 
     test::write_wav_mono16("input.wav", input, static_cast<uint32_t>(sample_rate_hz));

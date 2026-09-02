@@ -68,10 +68,10 @@ if(NOT "${BOARD}" STREQUAL "NATIVE")
     endforeach()
 endif()
 
-#9 Add subdirectories
+#9 Add subdirectories (external before common: common/core/dsp links CMSISDSP)
 add_subdirectory(mcu_support)
-add_subdirectory(common)
 add_subdirectory(external)
+add_subdirectory(common)
 
 #10 Build specific app or all apps
 if(DEFINED TARGET_APP)

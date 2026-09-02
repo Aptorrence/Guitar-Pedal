@@ -7,6 +7,7 @@
 
 #include "effect.h"
 #include <algorithm>
+#include <span>
 
 namespace dsp
 {
@@ -19,17 +20,11 @@ namespace dsp
      * @param clip Output magnitude the signal is clamped to.
      * @param crunch Extra gain applied inside the linear region.
      *
-     * Inside +-threshold the transfer curve is (clip / threshold) * crunch * x, so the
-     * small-signal slope is clip/threshold scaled by crunch. Outside that band the
-     * output jumps straight to +-clip, and a final clamp keeps the linear segment from
-     * overshooting +-clip when crunch > 1. output_level scales the result afterward and
-     * is independent of threshold/clip/crunch, so it's a pure loudness trim rather than
-     * part of the curve shape.
      */
     class Fuzz : public Effect
     {
     public:
-        Fuzz(float threshold, float clip, float crunch, float output_level = 1.0f)
+        Fuzz(float threshold, float clip, float crunch)
         {
             set_threshold(threshold);
             set_clip(clip);
@@ -55,25 +50,28 @@ namespace dsp
             crunch_ = std::max(crunch, 0.0f);
         }
 
-
-        float processBlock(float sample) override
+        void processBlock(std::span<float> block) override
         {
-            float output;
-            if (sample > -threshold_ && sample < threshold_)
+            for (float &sample : block)
             {
-                const float gradient = clip_ / threshold_;
-                output = gradient * crunch_ * sample;
-            }
-            else if (sample < 0.0f)
-            {
-                output = -clip_;
-            }
-            else
-            {
-                output = clip_;
-            }
+                float output;
+                if (sample > -threshold_ && sample < threshold_)
+                {
+                    const float gradient = clip_ / threshold_;
+                    output = gradient * crunch_ * sample;
+                }
+                else if (sample < 0.0f)
+                {
+                    output = -clip_;
+                }
+                else
+                {
+                    output = clip_;
+                }
 
-            return std::clamp(output, -clip_, clip_) * std::pow(10.0f, OUTPUT_ATTIUATION / 20.0f);
+                sample =
+                    std::clamp(output, -clip_, clip_) * std::pow(10.0f, OUTPUT_ATTIUATION / 20.0f);
+            }
         }
 
     private:

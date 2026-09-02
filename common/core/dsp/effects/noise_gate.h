@@ -8,6 +8,7 @@
 #include "effect.h"
 #include <algorithm>
 #include <cmath>
+#include <span>
 
 namespace dsp
 {
@@ -37,7 +38,16 @@ namespace dsp
             release_coeff_ = std::exp(-TIME_CONST_90_10 / (sample_rate_hz * release_ms));
         }
 
-        float processBlock(float sample) override
+        void processBlock(std::span<float> block) override
+        {
+            for (float &sample : block)
+            {
+                sample = process_sample(sample);
+            }
+        }
+
+    private:
+        float process_sample(float sample)
         {
             const float input_abs = std::fabs(sample);
             const float gain = (input_abs < threshold_) ? 0.0f : 1.0f;
@@ -64,7 +74,6 @@ namespace dsp
             return sample * smoothed_gain_;
         }
 
-    private:
         float threshold_ = 0.0f;
         float hold_time_s_;
         float sample_time_s_;
