@@ -5,8 +5,10 @@
 
 #pragma once
 
+#include "arm_backend.h"
 #include "audio_taper.h"
 #include "effect.h"
+#include <span>
 
 namespace dsp
 {
@@ -22,9 +24,9 @@ namespace dsp
             gain_ = audio_taper(linear01);
         }
 
-        float processBlock(float sample) override
+        void processBlock(std::span<float> block) override
         {
-            return sample * gain_;
+            dsp::scale(block, gain_);
         }
 
     private:

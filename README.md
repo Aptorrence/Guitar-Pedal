@@ -16,6 +16,7 @@ Make sure it worked: ```ninja --version```
 
 Lastly, pull in external dependencies:
 ```git submodule update --init --recursive```
+This is **required**, not optional. `external/CMSIS-DSP` (a [fork](https://github.com/Aptorrence/CMSIS-DSP) of ARM's CMSIS-DSP) backs the DSP primitives for both the `native` and `dsp_pedal` builds, and CMake hard-fails if the submodule is missing. `git clone --recursive` does the same up front.
 
 
 ## Building
@@ -54,6 +55,7 @@ Additionally, grab the cortex-debug extension for VSCode.
 Relevant pieces live in a few places:
 
 - **`common/core/dsp/`** — platform-agnostic audio-signal primitives that don't touch hardware and build for `native` too.
+- **`common/core/dsp/arm_backend.{h,cpp}`** — This is a CMSIS-DSP wrapper that includes `<arm_math.h>`, so effects call the `dsp::` wrappers declared here (e.g. `dsp::scale`) rather than CMSIS_DSP directly. CMSIS-DSP is compiled for **both** targets (`native` uses its `HOST=ON` mode), so `effect_test` runs the same kernels as the M7, pretty cool!
 - **`app/guitar_pedal/`** — app for the main board. `audio_engine.cpp` owns the the signal chain ex: (noise gate -> volume),`main.cpp` sets everything up and polls user knobs n stuff.
 - **`app/effect_test/`** — a **host-native** sandbox for iterating on effects without touching hardware. It runs an effect chain over either a generated test tone or a 16-bit mono WAV file you pass on the command line, and writes `input.wav`/`output.wav` so you can listen to before/after. Build and run it with the `native` preset:
   ```

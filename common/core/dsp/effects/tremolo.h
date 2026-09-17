@@ -7,6 +7,7 @@
 
 #include "effect.h"
 #include <algorithm>
+#include <span>
 
 namespace dsp
 {
@@ -64,7 +65,16 @@ namespace dsp
             lfo_count_ = std::clamp(lfo_count_, -lfo_count_limit_, lfo_count_limit_);
         }
 
-        float processBlock(float sample) override
+        void processBlock(std::span<float> block) override
+        {
+            for (float &sample : block)
+            {
+                sample = process_sample(sample);
+            }
+        }
+
+    private:
+        float process_sample(float sample)
         {
             const float lfo = lfo_count_ / lfo_count_limit_;
             const float gain = (1.0f - mix_) + mix_ * lfo;
@@ -86,7 +96,6 @@ namespace dsp
             return sample * gain;
         }
 
-    private:
         float mix_ = 0.0f;
         float lfo_dir_ = 1.0f;
         float lfo_count_ = 0.0f;

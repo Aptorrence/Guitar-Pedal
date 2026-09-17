@@ -12,6 +12,7 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <span>
 
 namespace dsp
 {
@@ -69,7 +70,16 @@ namespace dsp
             feedback_smoother_.set_target(std::clamp(feedback, 0.0f, MAX_FEEDBACK));
         }
 
-        float processBlock(float sample) override
+        void processBlock(std::span<float> block) override
+        {
+            for (float &sample : block)
+            {
+                sample = process_sample(sample);
+            }
+        }
+
+    private:
+        float process_sample(float sample)
         {
             const float mix = mix_smoother_.next();
             const float feedback = feedback_smoother_.next();
@@ -90,7 +100,6 @@ namespace dsp
             return std::clamp(out, -1.0f, 1.0f);
         }
 
-    private:
         /**
          * Time constants for the internal ramps. Mix/feedback are quick since they're a
          * plain crossfade; delay time is slower since changing it re-times the echo and

@@ -1,9 +1,11 @@
 /**
  * @file effect.h
- * @brief Single-sample audio effect interface.
+ * @brief Block-based audio effect interface.
  */
 
 #pragma once
+
+#include <span>
 
 namespace dsp
 {
@@ -12,14 +14,18 @@ namespace dsp
      * @brief One stage in an audio processing chain.
      *
      * Implementations hold their own state (envelope followers, delay lines,
-     * LFO phase, etc.) and process one sample at a time, so a chain can be
-     * built as a plain ordered list of Effect* without any branching on which
-     * combination of effects is active.
+     * LFO phase, etc.) and process a block of samples in place, so a chain can
+     * be built as a plain ordered list of Effect* without any branching on
+     * which combination of effects is active.
      */
     class Effect
     {
     public:
-        virtual float processBlock(float sample) = 0;
+        /**
+         * @brief Processes one block of samples in place.
+         * @param block Mono samples in [-1, 1]; overwritten with this stage's output.
+         */
+        virtual void processBlock(std::span<float> block) = 0;
 
         virtual ~Effect() = default;
     };
