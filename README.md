@@ -6,6 +6,9 @@ Welcome to our CMake build system for Embedded SW! This repo currently targets o
 First, install the arm toolchain. If you are on a Unix system, simply use your package installer, for example in Ubuntu: ```sudo apt-get install arm-none-eabi-gcc```.
 On Windows, you can download it from online, try [here](https://developer.arm.com/downloads/-/gnu-rm) - you may have to add it to your path. Make sure it worked: ```arm-none-eabi-gcc --version```
 
+If you want the `native` (host PC) target, you'll also need a host C/C++ compiler. On Unix this is usually already present, otherwise ```sudo apt-get install build-essential```.
+On Windows, install [MinGW-w64](https://www.mingw-w64.org/downloads/) and add its `bin` folder (e.g. `C:\Program Files (x86)\mingw64\bin`) to your path so `gcc`/`g++` resolve — CMake auto-detects them from there. Make sure it worked: ```gcc --version``` 
+
 Next, install Cmake (3.27+). ```sudo apt-get install cmake```
 On Windows, try [here](https://cmake.org/download/). Again, may have to add to path.
 Make sure it worked: ```cmake --version```
