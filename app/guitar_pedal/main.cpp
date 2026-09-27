@@ -13,6 +13,13 @@ namespace
 
     std::array<controls::KnobFilter, bsp::potChannelCount> knob_filters;
 
+    struct KnobBinding
+    {
+        bsp::PotChannel channel;
+        void (*set)(float linear01);
+        driver::Stmh7::HwGpio &led;
+    };
+
     float read_knob(bsp::Board &board, bsp::PotChannel channel)
     {
         const float raw =
@@ -44,6 +51,20 @@ int main()
     uint32_t last_blink = board.clock.millis();
     const uint32_t blink_interval = codec_ok ? 500 : 100;
 
+    /** Which pot drives which engine setter; swap or uncomment rows to remap. */
+    const std::array knobs{
+        KnobBinding{bsp::pot0, audio_engine::set_volume, board.pled0},
+        KnobBinding{bsp::pot1, audio_engine::set_noise_gate_threshold, board.pled1},
+        KnobBinding{bsp::pot2, audio_engine::set_fuzz_clip, board.pled2},
+        KnobBinding{bsp::pot3, audio_engine::set_fuzz_crunch, board.pled3},
+        KnobBinding{bsp::pot4, audio_engine::set_fuzz_threshold, board.pled4},
+        KnobBinding{bsp::pot5, audio_engine::set_tremolo_mix, board.pled5},
+        // KnobBinding{bsp::pot5, audio_engine::set_delay_time, board.pled5},
+        KnobBinding{bsp::pot6, audio_engine::set_tremolo_lfo_frequency, board.pled6},
+        // KnobBinding{bsp::pot6, audio_engine::set_delay_mix, board.pled6},
+        // KnobBinding{bsp::pot7, audio_engine::set_delay_feedback, board.pled7},
+    };
+
     uint32_t last_control = board.clock.millis();
 
     while (true)
@@ -52,43 +73,14 @@ int main()
         {
             last_control = board.clock.millis();
 
-            float knob0 = read_knob(board, bsp::pot0);
-            audio_engine::set_volume(knob0);
-            board.pled0.set(true);
+            for (const KnobBinding &knob : knobs)
+            {
+                knob.set(read_knob(board, knob.channel));
+                knob.led.set(true);
+            }
 
-            float knob1 = read_knob(board, bsp::pot1);
-            audio_engine::set_noise_gate_threshold(knob1);
-            board.pled1.set(true);
-
-            float knob2 = read_knob(board, bsp::pot2);
-            audio_engine::set_fuzz_clip(knob2);
-            board.pled2.set(true);
-
-            float knob3 = read_knob(board, bsp::pot3);
-            audio_engine::set_fuzz_crunch(knob3);
-            board.pled3.set(true);
-
-            float knob4 = read_knob(board, bsp::pot4);
-            audio_engine::set_fuzz_threshold(knob4);
-            board.pled4.set(true);
-
-            float knob5 = read_knob(board, bsp::pot5);
-            audio_engine::set_tremolo_mix(knob5);
-            // audio_engine::set_delay_time(knob5);
-            board.pled5.set(true);
-
-            float knob6 = read_knob(board, bsp::pot6);
-            audio_engine::set_tremolo_lfo_frequency(knob6);
-            // audio_engine::set_delay_mix(knob6);
-            board.pled6.set(true);
-
-            float knob7 = read_knob(board, bsp::pot7);
-            // audio_engine::set_delay_feedback(knob7);
-
-            const bool fw1 = board.ft_sw1.read();
-            const bool fw2 = board.ft_sw2.read();
-            audio_engine::set_fw1_enabled(fw1);
-            audio_engine::set_fw2_enabled(fw2);
+            audio_engine::set_fw1_enabled(board.ft_sw1.read());
+            audio_engine::set_fw2_enabled(board.ft_sw2.read());
         }
 
         if (board.clock.millis() - last_blink >= blink_interval)

@@ -32,7 +32,7 @@ set(BOARD_SYSTEM_C "${CMAKE_SOURCE_DIR}/mcu_support/stm32/h7xx/system_stm32h7xx.
 # Include directories
 target_include_directories(board_config SYSTEM INTERFACE ${BOARD_INCLUDE_DIRS})
 
-# Compile definitions (macros like STM32L496xx)
+# Compile definitions (macros like STM32H743xx)
 target_compile_definitions(board_config INTERFACE ${BOARD_DEFINES})
 
 # Compile options (CPU/FPU flags)

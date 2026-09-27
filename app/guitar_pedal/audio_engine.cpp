@@ -5,7 +5,6 @@
 #include "effects/delay_effect.h"
 #include "effects/fuzz.h"
 #include "effects/tremolo.h"
-#include "ping_pong_buffer.h"
 #include "sample_convert.h"
 #include <array>
 
@@ -34,8 +33,9 @@ namespace audio_engine
          */
         constexpr float SAMPLE_RATE_HZ{44117.0f};
 
-        dsp::PingPongBuffer<int32_t, HALF_SIZE> tx_buf;
-        dsp::PingPongBuffer<int32_t, HALF_SIZE> rx_buf;
+        /** DMA ping-pong buffers: the stream hands back one half at a time. */
+        std::array<int32_t, HALF_SIZE * 2> tx_buf{};
+        std::array<int32_t, HALF_SIZE * 2> rx_buf{};
 
         dsp::Volume volume;
 
@@ -77,10 +77,6 @@ namespace audio_engine
         bool fw1_enabled = false;
         bool fw2_enabled = false;
 
-        /** Last sample written to tx_half, for inspection in a debugger. */
-        float debug_out = 0.0f;
-        float debug_in = 0.0f;
-
         /** rx_half converted to float, run through the chain in place, then written to tx_half. */
         std::array<float, HALF_SIZE> block_buf{};
         /**
@@ -100,7 +96,6 @@ namespace audio_engine
             {
                 block[i] = dsp::q24_to_float(rx_half[i]);
             }
-            debug_in = block[frames - 1];
 
             noise_gate.processBlock(block);
             if (fw1_enabled)
@@ -115,7 +110,6 @@ namespace audio_engine
             }
             volume.processBlock(block);
 
-            debug_out = block[frames - 1];
             for (size_t i = 0; i < frames; ++i)
             {
                 tx_half[i] = dsp::float_to_q24(block[i]);
@@ -126,8 +120,7 @@ namespace audio_engine
     void start(driver::AudioStream &audio)
     {
         audio.set_process_callback(processBlock);
-        audio.start(std::span<int32_t>(tx_buf.data(), tx_buf.TOTAL_SIZE),
-                    std::span<int32_t>(rx_buf.data(), rx_buf.TOTAL_SIZE));
+        audio.start(tx_buf, rx_buf);
     }
 
     void set_volume(float linear01)

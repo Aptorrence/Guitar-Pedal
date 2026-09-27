@@ -6,6 +6,7 @@
 #pragma once
 
 #include "effect.h"
+#include "smoother.h"
 #include <algorithm>
 #include <cmath>
 #include <span>
@@ -30,12 +31,8 @@ namespace dsp
 
         void set_attack_release_time(float attack_ms, float release_ms, float sample_rate_hz)
         {
-            /**
-             * 1000*ln(9): converts a 10%-90% rise time in ms into a one-pole coefficient.
-             */
-            constexpr float TIME_CONST_90_10{2197.22457734f};
-            attack_coeff_ = std::exp(-TIME_CONST_90_10 / (sample_rate_hz * attack_ms));
-            release_coeff_ = std::exp(-TIME_CONST_90_10 / (sample_rate_hz * release_ms));
+            attack_coeff_ = one_pole_coeff(attack_ms, sample_rate_hz);
+            release_coeff_ = one_pole_coeff(release_ms, sample_rate_hz);
         }
 
         void processBlock(std::span<float> block) override

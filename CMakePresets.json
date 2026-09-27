@@ -29,29 +29,10 @@
             "toolchainFile": "cmake/toolchains/arm-gcc.cmake"
         },
         {
-            "name": "stm32l4",
-            "hidden": true,
-            "inherits": "arm32_base",
-            "cacheVariables": {
-                "FREERTOS_PORT": "GCC_ARM_CM4F",
-                "MCU_FAMILY": "STM32L4"
-            }
-        },
-        {
-            "name": "board_with_stm32l496zg",
-            "inherits": "stm32l4",
-            "binaryDir": "${sourceDir}/build/board_with_stm32l496zg",
-            "cacheVariables": {
-                "BOARD": "board_with_stm32l496zg",
-                "MCU_NAME": "STM32L496xx"
-            }
-        },
-        {
             "name": "stm32h7",
             "hidden": true,
             "inherits": "arm32_base",
             "cacheVariables": {
-                "FREERTOS_PORT": "GCC_ARM_CM7",
                 "MCU_FAMILY": "STM32H7"
             }
         },

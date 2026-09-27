@@ -4,9 +4,10 @@
  */
 #pragma once
 
-#include "analog_input.h"
 #include "stm32h7xx_hal.h"
 #include <array>
+#include <cstddef>
+#include <cstdint>
 
 namespace driver
 {
@@ -20,7 +21,7 @@ namespace driver
          * scan order (and so which array index maps to which physical channel)
          * is whatever rank order MX_ADC1_Init assigned.
          */
-        template <size_t CHANNEL_COUNT> class HalAdcInputArray : public AnalogInputArray
+        template <size_t CHANNEL_COUNT> class HalAdcInputArray
         {
         public:
             explicit HalAdcInputArray(ADC_HandleTypeDef *handle) : handle_{handle} {}
@@ -35,12 +36,11 @@ namespace driver
                                          CHANNEL_COUNT) == HAL_OK;
             }
 
-            size_t channel_count() const override
-            {
-                return CHANNEL_COUNT;
-            }
-
-            uint16_t read(size_t channel) const override
+            /**
+             * @brief Most recent reading for the given channel, scaled 0..UINT16_MAX
+             *        regardless of the ADC's native resolution.
+             */
+            uint16_t read(size_t channel) const
             {
                 const uint8_t raw = raw_[channel];
                 return static_cast<uint16_t>((raw << 8) | raw);

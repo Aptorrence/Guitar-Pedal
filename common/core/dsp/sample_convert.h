@@ -10,7 +10,6 @@
 
 namespace dsp
 {
-    constexpr int32_t Q24_SIGN_BIT{0x800000};
     constexpr int32_t Q24_MASK{0xFFFFFF};
     constexpr float Q24_MAX{8388607.0f}; // 2^23 - 1
 
@@ -21,12 +20,11 @@ namespace dsp
      */
     inline float q24_to_float(int32_t sample)
     {
-        sample &= Q24_MASK;
-        if (sample & Q24_SIGN_BIT)
-        {
-            sample |= ~Q24_MASK;
-        }
-        return static_cast<float>(sample) / Q24_MAX;
+        /**
+         * Shift bit 23 up to the sign bit and back down: drops the top byte and
+         * sign-extends in one step (both shifts are well-defined in C++20).
+         */
+        return static_cast<float>((sample << 8) >> 8) / Q24_MAX;
     }
 
     /**

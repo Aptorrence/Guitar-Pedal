@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include "smoother.h"
 #include <cmath>
 
 namespace controls
@@ -31,12 +32,7 @@ namespace controls
          */
         void configure(float smooth_ms, float poll_rate_hz, float deadband)
         {
-            /**
-             * 1000*ln(9): converts a 10%-90% rise time in ms into a one-pole coefficient.
-             */
-            constexpr float TIME_CONST_90_10{2197.22457734f};
-            coeff_ = (smooth_ms <= 0.0f) ? 0.0f
-                                         : std::exp(-TIME_CONST_90_10 / (poll_rate_hz * smooth_ms));
+            smoother_.set_time(smooth_ms, poll_rate_hz);
             deadband_ = deadband;
         }
 
@@ -46,7 +42,7 @@ namespace controls
          */
         void prime(float raw)
         {
-            smoothed_ = raw;
+            smoother_.reset(raw);
             reported_ = raw;
         }
 
@@ -55,18 +51,18 @@ namespace controls
          */
         float update(float raw)
         {
-            smoothed_ = coeff_ * smoothed_ + (1.0f - coeff_) * raw;
-            if (std::fabs(smoothed_ - reported_) > deadband_)
+            smoother_.set_target(raw);
+            const float smoothed = smoother_.next();
+            if (std::fabs(smoothed - reported_) > deadband_)
             {
-                reported_ = smoothed_;
+                reported_ = smoothed;
             }
             return reported_;
         }
 
     private:
-        float coeff_ = 0.0f;
+        dsp::Smoother smoother_;
         float deadband_ = 0.0f;
-        float smoothed_ = 0.0f;
         float reported_ = 0.0f;
     };
 } // namespace controls

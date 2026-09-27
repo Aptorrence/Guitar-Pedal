@@ -9,6 +9,20 @@
 namespace dsp
 {
     /**
+     * @brief One-pole filter coefficient for a given settle time.
+     * @param time_ms 10%-90% rise time; <= 0 gives 0 (no smoothing).
+     * @param rate_hz How often the filter is stepped.
+     */
+    inline float one_pole_coeff(float time_ms, float rate_hz)
+    {
+        /**
+         * 1000*ln(9): converts a 10%-90% rise time in ms into a one-pole coefficient.
+         */
+        constexpr float TIME_CONST_90_10{2197.22457734f};
+        return (time_ms <= 0.0f) ? 0.0f : std::exp(-TIME_CONST_90_10 / (rate_hz * time_ms));
+    }
+
+    /**
      * @class Smoother
      * @brief Ramps a value toward a target by a fixed fraction each sample, instead of
      *        jumping to it immediately. Used to turn a stepped knob/pot reading into a
@@ -24,12 +38,7 @@ namespace dsp
          */
         void set_time(float time_ms, float sample_rate_hz)
         {
-            /**
-             * 1000*ln(9): converts a 10%-90% rise time in ms into a one-pole coefficient.
-             */
-            constexpr float TIME_CONST_90_10{2197.22457734f};
-            coeff_ =
-                (time_ms <= 0.0f) ? 0.0f : std::exp(-TIME_CONST_90_10 / (sample_rate_hz * time_ms));
+            coeff_ = one_pole_coeff(time_ms, sample_rate_hz);
         }
 
         /**
@@ -55,11 +64,6 @@ namespace dsp
         float next()
         {
             value_ = coeff_ * value_ + (1.0f - coeff_) * target_;
-            return value_;
-        }
-
-        float value() const
-        {
             return value_;
         }
 

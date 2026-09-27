@@ -7,7 +7,6 @@
 
 #include <cstdint>
 #include "delay.h"
-#include "uptime.h"
 
 /**
  * @brief Advances the millisecond counter. SysTick_Handler must call this once
@@ -22,7 +21,7 @@ namespace driver
     {
         /**
          * @class HwSysTick
-         * @brief Free-running 1 kHz tick backing both Uptime and Delay.
+         * @brief Free-running 1 kHz tick providing millis() and backing Delay.
          *
          * Coexists with the HAL timebase: HAL_InitTick() (via HAL_Init) programs the
          * Cortex-M SysTick for a 1 ms period and enables its interrupt, and
@@ -33,7 +32,7 @@ namespace driver
          * There is no params struct because coexist mode configures no hardware; the
          * SysTick registers stay owned by the HAL init path.
          */
-        class HwSysTick : public Uptime, public Delay
+        class HwSysTick : public Delay
         {
         public:
             HwSysTick() = default;
@@ -45,7 +44,8 @@ namespace driver
              */
             bool init(void);
 
-            uint32_t millis() override;
+            /** @return Milliseconds since SysTick started; wraps at UINT32_MAX. */
+            uint32_t millis();
 
             void delay_ms(uint32_t ms) override;
         };
