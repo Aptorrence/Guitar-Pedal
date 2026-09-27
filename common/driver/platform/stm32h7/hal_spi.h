@@ -7,22 +7,22 @@
 
 #pragma once
 
-#include "spi.h"
 #include "stm32h7xx_hal.h"
+#include <cstdint>
 #include <span>
 
 namespace driver
 {
     namespace Stmh7
     {
-        class HalSpi : public Spi
+        class HalSpi
         {
         public:
             explicit HalSpi(SPI_HandleTypeDef *handle);
 
-            bool Read(std::span<uint8_t> rx_data) override;
-            bool Write(std::span<uint8_t> tx_data) override;
-            bool Transfer(std::span<uint8_t> tx_data, std::span<uint8_t> rx_data) override;
+            bool Read(std::span<uint8_t> rx_data);
+            bool Write(std::span<uint8_t> tx_data);
+            bool Transfer(std::span<uint8_t> tx_data, std::span<uint8_t> rx_data);
 
         private:
             SPI_HandleTypeDef *handle_;

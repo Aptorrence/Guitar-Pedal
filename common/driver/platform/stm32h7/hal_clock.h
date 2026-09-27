@@ -1,20 +1,19 @@
 /**
  * @file hal_clock.h
- * @brief Uptime hal wrapper for STM32H743xx
+ * @brief Millisecond uptime hal wrapper for STM32H743xx
  */
 #pragma once
 
 #include "stm32h7xx_hal.h"
-#include "uptime.h"
 
 namespace driver
 {
     namespace Stmh7
     {
-        class HalClock : public Uptime
+        class HalClock
         {
         public:
-            uint32_t millis() override;
+            uint32_t millis();
         };
     } // namespace Stmh7
 } // namespace driver

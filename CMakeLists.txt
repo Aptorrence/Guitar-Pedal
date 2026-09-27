@@ -27,20 +27,14 @@ if(NOT DEFINED BOARD)
     message(FATAL_ERROR "preset must be defined. Use cmake --list-presets=build to see options" )
 endif()
 
-#4 Load board overlay
-if("${BOARD}" STREQUAL "dsp_pedal")
-    include(boards/dsp_pedal/board.cmake)
-elseif("${BOARD}" STREQUAL "board_with_stm32l496zg")
-    include(boards/board_with_stm32l496zg/board.cmake)
-elseif("${BOARD}" STREQUAL "NATIVE")
-    include(boards/native/board.cmake)
-endif()
+#4 Load board overlay (boards/<board>/board.cmake; BOARD=NATIVE maps to boards/native)
+string(TOLOWER "${BOARD}" BOARD_DIR)
+include(boards/${BOARD_DIR}/board.cmake)
 
 #5 if not running nativly need, toolchain, emit .elf file, and required cache varibles
 if(NOT "${BOARD}" STREQUAL "NATIVE")
 
-    #6 Include toolchain and helper modules
-    #include(cmake/modules/build-util.cmake) #not used right now
+    #6 Include toolchain
     include(cmake/toolchains/arm-gcc.cmake)
 
     #7 emit .elf files
@@ -49,8 +43,7 @@ if(NOT "${BOARD}" STREQUAL "NATIVE")
     #8 check for required cache varibles
     foreach(req IN ITEMS
       #from CmakePresets.json
-      BOARD
-      MCU_NAME         
+      MCU_NAME
       #from board.cmake
       BOARD_DEFINES
       BOARD_INCLUDE_DIRS
@@ -66,6 +59,16 @@ if(NOT "${BOARD}" STREQUAL "NATIVE")
     endif()
 
     endforeach()
+
+    #8.a Emit .hex/.bin next to a firmware .elf and print its size
+    function(add_firmware_outputs TARGET)
+        add_custom_command(TARGET ${TARGET} POST_BUILD
+          COMMAND ${CMAKE_OBJCOPY} -O ihex   $<TARGET_FILE:${TARGET}> ${TARGET}.hex
+          COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${TARGET}> ${TARGET}.bin
+          COMMAND ${CMAKE_SIZE}    --format=berkeley $<TARGET_FILE:${TARGET}>
+          COMMENT "Generated ${TARGET}.hex and ${TARGET}.bin"
+        )
+    endfunction()
 endif()
 
 #9 Add subdirectories (external before common: common/core/dsp links CMSISDSP)

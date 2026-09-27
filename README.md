@@ -30,7 +30,7 @@ cmake --preset dsp_pedal
 cmake --build build/dsp_pedal
 ```
 
-Available presets (see `CMakePresets.json`): `native`, `dsp_pedal`, `board_with_stm32l496zg`. Each preset configures into its own `build/<preset>` directory, so you can keep several targets configured side by side.
+Available presets (see `CMakePresets.json`): `native`, `dsp_pedal`. Each preset configures into its own `build/<preset>` directory, so you can keep several targets configured side by side.
 
 By default all apps for the target board are built. To build only one app, pass `TARGET_APP` at configure time:
 ```

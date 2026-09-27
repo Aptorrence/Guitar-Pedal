@@ -69,14 +69,14 @@ namespace dsp
                     output = clip_;
                 }
 
-                sample =
-                    std::clamp(output, -clip_, clip_) * std::pow(10.0f, OUTPUT_ATTIUATION / 20.0f);
+                sample = std::clamp(output, -clip_, clip_) * OUTPUT_GAIN;
             }
         }
 
     private:
         static constexpr float MIN_THRESHOLD{1e-6f};
-        static constexpr float OUTPUT_ATTIUATION{-24.0f};
+        /** -24 dB output attenuation: 10^(-24/20). */
+        static constexpr float OUTPUT_GAIN{0.0630957261f};
 
         float threshold_ = MIN_THRESHOLD;
         float clip_ = 0.0f;

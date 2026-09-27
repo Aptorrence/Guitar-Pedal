@@ -1,2 +1,4 @@
 build/
 .claude/
+/input.wav
+/output.wav
