@@ -1,5 +1,5 @@
 add_library(dsp STATIC
-    arm_backend.cpp
+    cmsis_dsp_backend.cpp
 )
 
 target_include_directories(dsp PUBLIC

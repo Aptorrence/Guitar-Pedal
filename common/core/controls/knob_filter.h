@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "smoother.h"
+#include "single_pole_lp_filter.h"
 #include <cmath>
 
 namespace controls
@@ -32,7 +32,7 @@ namespace controls
          */
         void configure(float smooth_ms, float poll_rate_hz, float deadband)
         {
-            smoother_.set_time(smooth_ms, poll_rate_hz);
+            filter_.set_time(smooth_ms, poll_rate_hz);
             deadband_ = deadband;
         }
 
@@ -42,7 +42,7 @@ namespace controls
          */
         void prime(float raw)
         {
-            smoother_.reset(raw);
+            filter_.reset(raw);
             reported_ = raw;
         }
 
@@ -51,8 +51,7 @@ namespace controls
          */
         float update(float raw)
         {
-            smoother_.set_target(raw);
-            const float smoothed = smoother_.next();
+            const float smoothed = filter_.process(raw);
             if (std::fabs(smoothed - reported_) > deadband_)
             {
                 reported_ = smoothed;
@@ -61,7 +60,7 @@ namespace controls
         }
 
     private:
-        dsp::Smoother smoother_;
+        dsp::SinglePoleLpFilter filter_;
         float deadband_ = 0.0f;
         float reported_ = 0.0f;
     };

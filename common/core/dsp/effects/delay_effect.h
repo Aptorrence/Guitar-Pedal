@@ -7,7 +7,7 @@
 #pragma once
 
 #include "effect.h"
-#include "smoother.h"
+#include "single_pole_lp_filter.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -33,32 +33,31 @@ namespace dsp
     public:
         Delay(float delay_time_ms, float mix, float feedback, float sample_rate_hz)
         {
-            mix_smoother_.set_time(PARAM_SMOOTH_MS, sample_rate_hz);
-            feedback_smoother_.set_time(PARAM_SMOOTH_MS, sample_rate_hz);
-            length_smoother_.set_time(TIME_SMOOTH_MS, sample_rate_hz);
+            mix_filter_.set_time(PARAM_SMOOTH_MS, sample_rate_hz);
+            feedback_filter_.set_time(PARAM_SMOOTH_MS, sample_rate_hz);
+            length_filter_.set_time(TIME_SMOOTH_MS, sample_rate_hz);
 
             /**
              * Route through the normal setters so the clamping logic stays in one place,
-             * then snap each smoother straight to that target -- no 80ms ramp-in at startup.
+             * then snap each filter straight to that target -- no 80ms ramp-in at startup.
              */
             set_delay_time(delay_time_ms, sample_rate_hz);
-            length_smoother_.reset(length_smoother_.target());
+            length_filter_.reset(length_target_);
             set_mix(mix);
-            mix_smoother_.reset(mix_smoother_.target());
+            mix_filter_.reset(mix_target_);
             set_feedback(feedback);
-            feedback_smoother_.reset(feedback_smoother_.target());
+            feedback_filter_.reset(feedback_target_);
         }
 
         void set_delay_time(float delay_time_ms, float sample_rate_hz)
         {
             const float requested = 0.001f * delay_time_ms * sample_rate_hz;
-            const float clamped = std::clamp(requested, 1.0f, static_cast<float>(MAX_LINE_LENGTH));
-            length_smoother_.set_target(clamped);
+            length_target_ = std::clamp(requested, 1.0f, static_cast<float>(MAX_LINE_LENGTH));
         }
 
         void set_mix(float mix)
         {
-            mix_smoother_.set_target(std::clamp(mix, 0.0f, 1.0f));
+            mix_target_ = std::clamp(mix, 0.0f, 1.0f);
         }
 
         void set_feedback(float feedback)
@@ -67,7 +66,7 @@ namespace dsp
              * Capped below 1.0: at feedback == 1 the line never decays, so a sustained
              * input turns it into an integrator that can ramp away from +-1 forever.
              */
-            feedback_smoother_.set_target(std::clamp(feedback, 0.0f, MAX_FEEDBACK));
+            feedback_target_ = std::clamp(feedback, 0.0f, MAX_FEEDBACK);
         }
 
         void processBlock(std::span<float> block) override
@@ -81,9 +80,10 @@ namespace dsp
     private:
         float process_sample(float sample)
         {
-            const float mix = mix_smoother_.next();
-            const float feedback = feedback_smoother_.next();
-            const size_t line_length = static_cast<size_t>(std::lround(length_smoother_.next()));
+            const float mix = mix_filter_.process(mix_target_);
+            const float feedback = feedback_filter_.process(feedback_target_);
+            const size_t line_length =
+                static_cast<size_t>(std::lround(length_filter_.process(length_target_)));
 
             const float delay_out = line_[line_index_];
             const float delay_in = std::clamp(sample + feedback * delay_out, -4.0f, 4.0f);
@@ -112,8 +112,13 @@ namespace dsp
         std::array<float, MAX_LINE_LENGTH> line_{};
         size_t line_index_ = 0;
 
-        Smoother mix_smoother_;
-        Smoother feedback_smoother_;
-        Smoother length_smoother_;
+        /** Setters write the targets; each sample ramps its filter toward them. */
+        float mix_target_ = 0.0f;
+        float feedback_target_ = 0.0f;
+        float length_target_ = 1.0f;
+
+        SinglePoleLpFilter mix_filter_;
+        SinglePoleLpFilter feedback_filter_;
+        SinglePoleLpFilter length_filter_;
     };
 } // namespace dsp

@@ -4,5 +4,5 @@ target_include_directories(controls INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# KnobFilter reuses dsp::Smoother.
+# KnobFilter reuses dsp::SinglePoleLpFilter.
 target_link_libraries(controls INTERFACE dsp)
