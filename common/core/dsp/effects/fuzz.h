@@ -76,7 +76,7 @@ namespace dsp
     private:
         static constexpr float MIN_THRESHOLD{1e-6f};
         /** -24 dB output attenuation: 10^(-24/20). */
-        static constexpr float OUTPUT_GAIN{0.0630957261f};
+        static constexpr float OUTPUT_GAIN{0.0630957344f};
 
         float threshold_ = MIN_THRESHOLD;
         float clip_ = 0.0f;

@@ -6,7 +6,7 @@
 #pragma once
 
 #include "effect.h"
-#include "smoother.h"
+#include "single_pole_lp_filter.h"
 #include <algorithm>
 #include <cmath>
 #include <span>
@@ -31,8 +31,8 @@ namespace dsp
 
         void set_attack_release_time(float attack_ms, float release_ms, float sample_rate_hz)
         {
-            attack_coeff_ = one_pole_coeff(attack_ms, sample_rate_hz);
-            release_coeff_ = one_pole_coeff(release_ms, sample_rate_hz);
+            attack_coeff_ = single_pole_coeff(attack_ms, sample_rate_hz);
+            release_coeff_ = single_pole_coeff(release_ms, sample_rate_hz);
         }
 
         void processBlock(std::span<float> block) override

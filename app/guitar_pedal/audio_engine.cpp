@@ -5,6 +5,7 @@
 #include "effects/delay_effect.h"
 #include "effects/fuzz.h"
 #include "effects/tremolo.h"
+#include "ping_pong_buffer.h"
 #include "sample_convert.h"
 #include <array>
 
@@ -33,9 +34,8 @@ namespace audio_engine
          */
         constexpr float SAMPLE_RATE_HZ{44117.0f};
 
-        /** DMA ping-pong buffers: the stream hands back one half at a time. */
-        std::array<int32_t, HALF_SIZE * 2> tx_buf{};
-        std::array<int32_t, HALF_SIZE * 2> rx_buf{};
+        dsp::PingPongBuffer<int32_t, HALF_SIZE> tx_buf;
+        dsp::PingPongBuffer<int32_t, HALF_SIZE> rx_buf;
 
         dsp::Volume volume;
 
@@ -120,7 +120,8 @@ namespace audio_engine
     void start(driver::AudioStream &audio)
     {
         audio.set_process_callback(processBlock);
-        audio.start(tx_buf, rx_buf);
+        audio.start(std::span<int32_t>(tx_buf.data(), tx_buf.TOTAL_SIZE),
+                    std::span<int32_t>(rx_buf.data(), rx_buf.TOTAL_SIZE));
     }
 
     void set_volume(float linear01)

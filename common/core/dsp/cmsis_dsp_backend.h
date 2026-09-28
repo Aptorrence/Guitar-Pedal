@@ -1,5 +1,5 @@
 /**
- * @file arm_backend.h
+ * @file cmsis_dsp_backend.h
  * @brief Namespaced wrappers over the CMSIS-DSP kernels used by the effects.
  *
  */
