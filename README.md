@@ -49,10 +49,6 @@ Additionally, grab the cortex-debug extension for VSCode.
 
 `.vscode/launch.json` already has working debug configs for `blink` and `guitar_pedal` on the H743VI — just build the target first (see above), then launch the matching config from the Run and Debug panel.
 
-## Live-plotting a variable (e.g. audio signal levels)
-
-`scripts/plot_debug_out.py` polls a variable's value straight out of MCU RAM over OpenOCD's telnet interface and live-plots it with matplotlib. Handy for watching signal levels while you play. This is a **polling** read, not a real trace capture — fine for watching envelope/level trends, not exact waveform shape since it only runs at around 500hz.`scripts/README.md` for more info.
-
 ## Developing DSP on this board
 
 Relevant pieces live in a few places:
@@ -69,6 +65,19 @@ Relevant pieces live in a few places:
   ```
 
  Great way to prototype/tune a new `dsp::Effect` — write it in `common/core/dsp/effects/`, wire it into `effect_test/main.cpp`, and listen to the result before ever flashing hardware (this is really cool :D). There is a example guitar noise in `\common\core\dsp\audio_test_clips\` that you can copy the path to or add your own.
+
+- **`scripts/effect_ui/`** — a browser UI for the same thing, no recompiling to try a new chain. Pick a WAV, add effects as "pedals", reorder/bypass them, turn knobs, hit **Run chain**, and A/B the input and output. The waveform plots work like MATLAB figures: linked axes, scroll/box zoom, pan, a crosshair readout (time, sample index, value, dB), and draggable level lines (e.g. drop one at your noise gate threshold). Needs Python 3 (standard library only, nothing to `pip install`):
+  ```
+  cmake --preset native
+  cmake --build build/native --target effect_runner
+  python scripts/effect_ui/server.py
+  ```
+  It opens `http://127.0.0.1:8000/`. Under the hood `server.py` just calls `effect_runner.exe` (`app/effect_test/effect_runner.cpp`), which you can also use straight from the command line:
+  ```
+  ./build/native/app/effect_test/effect_runner.exe --list
+  ./build/native/app/effect_test/effect_runner.exe in.wav out.wav noise_gate 0.05 5 5 10 fuzz 0.2 0.9 1 delay 300 0.5 0.5
+  ```
+  To get a new effect into the UI, add one entry to `registry()` in `effect_runner.cpp` (name, params with min/max/default, and a factory). The UI builds its knobs from that list, so no HTML changes needed.
 
 - **`boards/`** — the board support packages : for our current board `dsp_pedal bsp.h`/`bsp_h743.cpp` theres allot of cube IDE functions that are wrapped here but one could also write their own low levele drivers in `common/driver/platform/stm32h7/` to replace them eventually
 - **`common/componets/`** — holds the hardware-agnostic componet drivers injected with `driver::I2c`/`driver::Gpio`/`driver::Delay`.
