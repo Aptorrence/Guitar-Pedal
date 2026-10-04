@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Effect Chain Tester</title>
+<style>
+  :root {
+    --bg: #f4f2ee; --panel: #ffffff; --ink: #1d1d1f; --muted: #6b6b70; --line: #dcd8d0;
+    --accent: #d9480f; --knob: #2b2b30; --knob-ring: #c9c4ba; --error: #c92a2a; --off: 0.45;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141416; --panel: #1f1f23; --ink: #ececef; --muted: #9a9aa2; --line: #33333a;
+            --accent: #ff8a3d; --knob: #3a3a42; --knob-ring: #4a4a52; --error: #ff6b6b; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+            padding: 16px; margin-bottom: 16px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+       margin: 0 0 12px; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+           border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff;
+                   font-weight: 600; padding: 10px 20px; }
+  button.primary:disabled { opacity: .5; cursor: wait; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  audio { width: 100%; max-width: 480px; }
+  .players { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .players label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+
+  #chain { display: flex; flex-wrap: wrap; gap: 12px; }
+  #chain:empty::before { content: "No effects yet - add some above. Signal flows left to right.";
+                         color: var(--muted); }
+  .pedal { border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-width: 150px;
+           background: var(--bg); }
+  .pedal.off .knobs { opacity: var(--off); }
+  .pedal header { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .pedal .idx { font-size: 12px; color: var(--muted); }
+  .pedal .name { font-weight: 600; flex: 1; }
+  .pedal header button { padding: 2px 7px; font-size: 13px; }
+  .pedal .on { accent-color: var(--accent); }
+  .knobs { display: flex; flex-wrap: wrap; gap: 14px; }
+
+  .knob-wrap { display: flex; flex-direction: column; align-items: center; width: 64px;
+               user-select: none; }
+  .knob { width: 48px; height: 48px; border-radius: 50%; background: var(--knob);
+          border: 3px solid var(--knob-ring); position: relative; cursor: ns-resize; touch-action: none; }
+  .knob::after { content: ""; position: absolute; left: 50%; top: 4px; width: 3px; height: 14px;
+                 margin-left: -1.5px; border-radius: 2px; background: var(--accent); }
+  .knob-wrap .val { font-size: 12px; font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .knob-wrap .lbl { font-size: 11px; color: var(--muted); text-align: center; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .wave-row { margin-top: 16px; }
+  .wave-row label { display: flex; justify-content: space-between; font-size: 13px;
+                    color: var(--muted); margin-bottom: 4px; }
+  .plot { position: relative; height: 200px; border: 1px solid var(--line); border-radius: 8px;
+          background: var(--bg); overflow: hidden; }
+  .plot canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .plot .overlay { cursor: crosshair; touch-action: none; }
+  .plot .overlay.pan { cursor: grab; }
+  .plot .overlay.on-level { cursor: ns-resize; }
+  .toolbar { margin-top: 16px; gap: 12px; }
+  .seg { display: inline-flex; }
+  .seg button { border-radius: 0; }
+  .seg button:first-child { border-radius: 8px 0 0 8px; }
+  .seg button:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
+  .seg button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .toolbar input { font: inherit; width: 120px; padding: 6px 8px; border: 1px solid var(--line);
+                   border-radius: 8px; background: var(--panel); color: var(--ink); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 3px 4px 3px 10px;
+          border-radius: 999px; border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .chip i { width: 10px; height: 3px; border-radius: 2px; }
+  .chip button { border: none; padding: 0 6px; background: none; color: var(--muted); }
+  #status { color: var(--muted); }
+  #status.error { color: var(--error); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Effect Chain Tester</h1>
+  <p class="sub">Pick a 16-bit PCM WAV, build a chain, tweak the knobs, run it through the C++ effects.</p>
+
+  <section>
+    <h2>1. Input clip</h2>
+    <input type="file" id="file" accept=".wav,audio/wav">
+  </section>
+
+  <section>
+    <h2>2. Add effects</h2>
+    <div class="row" id="palette"></div>
+  </section>
+
+  <section>
+    <h2>3. Chain</h2>
+    <div id="chain"></div>
+    <p class="hint">Drag a knob up/down to turn it (hold Shift for fine), double-click to reset.
+      Untick a pedal to bypass it.</p>
+  </section>
+
+  <section>
+    <div class="row" style="margin-bottom:16px">
+      <button class="primary" id="run">Run chain</button>
+      <span id="status"></span>
+    </div>
+    <div class="players">
+      <div><label>Input</label><audio id="in-audio" controls></audio></div>
+      <div><label>Output <a id="download" hidden download="output.wav">download</a></label>
+        <audio id="out-audio" controls></audio></div>
+    </div>
+    <div class="row toolbar">
+      <div class="seg"><button data-mode="zoom" class="active">Zoom</button><button data-mode="pan">Pan</button></div>
+      <button id="reset-view">Reset view</button>
+      <input id="level-input" placeholder="0.05 or -26dB">
+      <button id="add-level">Add level line</button>
+      <span class="row" id="levels"></span>
+    </div>
+    <div class="wave-row"><label><span>Input</span><span id="in-peak"></span></label>
+      <div class="plot" id="in-plot"></div></div>
+    <div class="wave-row"><label><span>Output</span><span id="out-peak"></span></label>
+      <div class="plot" id="out-plot"></div></div>
+    <p class="hint">Axes are linked. Scroll = zoom time, Shift+scroll = zoom amplitude.
+      Drag = box zoom (or pan in Pan mode); a flat box zooms only time, a thin one only amplitude.
+      Double-click = reset view. Click = seek. Drag a level line to move it, double-click it to delete.</p>
+  </section>
+</main>
+
+<script>
+  let specs = {};
+  let chain = [];   // [{name, on, params: [...]}]
+  let inputBytes = null;
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (v) => Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2);
+
+  fetch("/effects").then((r) => r.json()).then((list) => {
+    for (const spec of list) {
+      specs[spec.name] = spec;
+      const b = document.createElement("button");
+      b.textContent = "+ " + spec.name;
+      b.onclick = () => { chain.push({ name: spec.name, on: true,
+                                       params: spec.params.map((p) => p.default) }); render(); };
+      $("palette").append(b);
+    }
+  }).catch(() => setStatus("Could not load effect list from the server.", true));
+
+  function render() {
+    $("chain").replaceChildren(...chain.map((fx, i) => {
+      const el = document.createElement("div");
+      el.className = "pedal" + (fx.on ? "" : " off");
+      el.innerHTML = `<header><input type="checkbox" class="on" title="Enabled" ${fx.on ? "checked" : ""}>
+        <span class="idx">${i + 1}</span><span class="name">${fx.name}</span>
+        <button title="Move earlier">&larr;</button><button title="Move later">&rarr;</button>
+        <button title="Remove">&times;</button></header><div class="knobs"></div>`;
+      const [onBox] = el.getElementsByTagName("input");
+      const [left, right, remove] = el.querySelectorAll("header button");
+      onBox.onchange = () => { fx.on = onBox.checked; el.classList.toggle("off", !fx.on); };
+      left.onclick = () => move(i, -1);
+      right.onclick = () => move(i, 1);
+      remove.onclick = () => { chain.splice(i, 1); render(); };
+      specs[fx.name].params.forEach((p, j) => el.querySelector(".knobs").append(knob(fx, p, j)));
+      return el;
+    }));
+  }
+
+  function move(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= chain.length) return;
+    [chain[i], chain[j]] = [chain[j], chain[i]];
+    render();
+  }
+
+  /** Rotary knob: 270 degree sweep, vertical drag changes the value. */
+  function knob(fx, spec, j) {
+    const wrap = document.createElement("div");
+    wrap.className = "knob-wrap";
+    wrap.innerHTML = `<div class="knob" title="${spec.name}"></div><div class="val"></div>
+                      <div class="lbl">${spec.name}</div>`;
+    const dial = wrap.querySelector(".knob");
+    const val = wrap.querySelector(".val");
+    const range = spec.max - spec.min;
+    const set = (v) => {
+      fx.params[j] = Math.min(spec.max, Math.max(spec.min, v));
+      const t = (fx.params[j] - spec.min) / range;
+      dial.style.transform = `rotate(${-135 + 270 * t}deg)`;
+      val.textContent = fmt(fx.params[j]);
+    };
+    set(fx.params[j]);
+
+    dial.addEventListener("pointerdown", (e) => {
+      dial.setPointerCapture(e.pointerId);
+      let lastY = e.clientY;
+      const onMove = (ev) => {
+        const pixelsForFullSweep = ev.shiftKey ? 1000 : 200;
+        set(fx.params[j] + (lastY - ev.clientY) / pixelsForFullSweep * range);
+        lastY = ev.clientY;
+      };
+      const onUp = () => { dial.removeEventListener("pointermove", onMove);
+                           dial.removeEventListener("pointerup", onUp); };
+      dial.addEventListener("pointermove", onMove);
+      dial.addEventListener("pointerup", onUp);
+    });
+    dial.addEventListener("dblclick", () => set(spec.default));
+    return wrap;
+  }
+
+  $("file").onchange = async () => {
+    const f = $("file").files[0];
+    if (!f) return;
+    inputBytes = await f.arrayBuffer();
+    $("in-audio").src = URL.createObjectURL(f);
+    loadWave(plots.in, inputBytes, true);
+    $("download").download = f.name.replace(/\.wav$/i, "") + "_out.wav";
+    setStatus("");
+  };
+
+  $("run").onclick = async () => {
+    if (!inputBytes) return setStatus("Choose an input WAV first.", true);
+    const active = chain.filter((fx) => fx.on).map(({ name, params }) => ({ name, params }));
+    $("run").disabled = true;
+    setStatus("Processing...");
+    const t0 = performance.now();
+    try {
+      const res = await fetch("/run?chain=" + encodeURIComponent(JSON.stringify(active)),
+                              { method: "POST", body: inputBytes });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      loadWave(plots.out, await blob.arrayBuffer(), false);
+      $("out-audio").src = url;
+      $("download").href = url;
+      $("download").hidden = false;
+      $("out-audio").play();
+      setStatus(`Done in ${Math.round(performance.now() - t0)} ms - ` +
+                (active.map((fx) => fx.name).join(" -> ") || "dry (no effects)"));
+    } catch (err) {
+      setStatus(err.message, true);
+    } finally {
+      $("run").disabled = false;
+    }
+  };
+
+  /**
+   * Linked waveform plots, MATLAB-figure style. Each plot has two canvases: the base layer
+   * (grid, ticks, waveform) only redraws when the view or data changes, while the overlay
+   * (level lines, playhead, crosshair, zoom box) is cheap and redraws on every mouse move.
+   */
+  const MARGIN = { left: 56, right: 10, top: 8, bottom: 22 };
+  const LEVEL_COLORS = ["#2f9e44", "#1c7ed6", "#ae3ec9", "#f59f00", "#e64980"];
+  const view = { t0: 0, t1: 1, y0: -1.05, y1: 1.05 };
+  let levels = [];      // [{v, color}] amplitudes, drawn mirrored at +-v
+  let hoverT = null;    // crosshair time in seconds, shared by both plots
+  let mode = "zoom";
+  let drag = null;      // {plot, kind: "box" | "pan" | "level", sx, sy, x, y, start, level}
+
+  const plots = {
+    in: makePlot($("in-plot"), $("in-audio"), $("in-peak"), "--muted"),
+    out: makePlot($("out-plot"), $("out-audio"), $("out-peak"), "--accent"),
+  };
+  const allPlots = Object.values(plots);
+
+  function makePlot(host, audio, peakEl, color) {
+    const base = document.createElement("canvas");
+    const overlay = document.createElement("canvas");
+    overlay.className = "overlay";
+    host.append(base, overlay);
+    return { host, base, overlay, audio, peakEl, color, samples: null, sr: 1 };
+  }
+
+  const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const db = (v) => (20 * Math.log10(Math.abs(v) || 1e-9)).toFixed(1);
+  const levelLabel = (v) => `±${v.toPrecision(3)}  ${db(v)} dB`;
+  const duration = () => {
+    const lengths = allPlots.filter((p) => p.samples).map((p) => p.samples.length / p.sr);
+    return lengths.length ? Math.max(...lengths) : 1;
+  };
+
+  /** Plot-area bounds and data <-> pixel transforms, all in CSS pixels. */
+  function geom(p) {
+    const w = p.host.clientWidth, h = p.host.clientHeight;
+    const x0 = MARGIN.left, x1 = w - MARGIN.right, y0 = MARGIN.top, y1 = h - MARGIN.bottom;
+    return {
+      w, h, x0, x1, y0, y1,
+      tx: (t) => x0 + (t - view.t0) / (view.t1 - view.t0) * (x1 - x0),
+      vy: (v) => y1 - (v - view.y0) / (view.y1 - view.y0) * (y1 - y0),
+      xt: (x) => view.t0 + (x - x0) / (x1 - x0) * (view.t1 - view.t0),
+      yv: (y) => view.y0 + (y1 - y) / (y1 - y0) * (view.y1 - view.y0),
+    };
+  }
+
+  function prepCanvas(c, g) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.round(g.w * dpr), h = Math.round(g.h * dpr);
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, g.w, g.h);
+    ctx.font = "11px system-ui, sans-serif";
+    return ctx;
+  }
+
+  function clipToPlot(ctx, g) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(g.x0, g.y0, g.x1 - g.x0, g.y1 - g.y0);
+    ctx.clip();
+  }
+
+  /** 1/2/5 x 10^n tick spacing, like MATLAB's auto ticks. */
+  function niceTicks(lo, hi, target) {
+    const raw = (hi - lo) / target;
+    const mag = 10 ** Math.floor(Math.log10(raw));
+    const n = raw / mag;
+    const step = (n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10) * mag;
+    const digits = Math.max(0, -Math.floor(Math.log10(step) + 1e-9));
+    const ticks = [];
+    for (let i = Math.ceil(lo / step); i * step <= hi; i++) ticks.push(i * step);
+    return { ticks, label: (v) => (Math.abs(v) < step / 2 ? 0 : v).toFixed(digits) };
+  }
+
+  function drawBase(p) {
+    const g = geom(p);
+    const ctx = prepCanvas(p.base, g);
+    const pw = g.x1 - g.x0, ph = g.y1 - g.y0;
+
+    const xt = niceTicks(view.t0, view.t1, Math.max(2, pw / 90));
+    const yt = niceTicks(view.y0, view.y1, Math.max(2, ph / 40));
+    ctx.strokeStyle = css("--line");
+    ctx.fillStyle = css("--muted");
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    for (const t of xt.ticks) {
+      const x = Math.round(g.tx(t)) + 0.5;
+      ctx.moveTo(x, g.y0);
+      ctx.lineTo(x, g.y1);
+      ctx.fillText(xt.label(t), x, g.y1 + 5);
+    }
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    for (const v of yt.ticks) {
+      const y = Math.round(g.vy(v)) + 0.5;
+      ctx.moveTo(g.x0, y);
+      ctx.lineTo(g.x1, y);
+      ctx.fillText(yt.label(v), g.x0 - 6, y);
+    }
+    ctx.stroke();
+    ctx.strokeRect(g.x0 + 0.5, g.y0 + 0.5, pw, ph);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText("t (s)", 6, g.y1 + 5);
+
+    if (!p.samples) return;
+    const s = p.samples, n = s.length, span = view.t1 - view.t0;
+    clipToPlot(ctx, g);
+    ctx.fillStyle = ctx.strokeStyle = css(p.color);
+    const samplesPerPx = span * p.sr / pw;
+    if (samplesPerPx > 2) {
+      /** Zoomed out: one min..max bar per pixel column, overlapping a sample each side so bars join. */
+      for (let c = 0; c < pw; c++) {
+        const i0 = Math.max(0, Math.floor((view.t0 + c / pw * span) * p.sr) - 1);
+        const i1 = Math.min(n, Math.ceil((view.t0 + (c + 1) / pw * span) * p.sr) + 1);
+        if (i0 >= i1) continue;
+        let lo = s[i0], hi = s[i0];
+        for (let i = i0 + 1; i < i1; i++) {
+          const v = s[i];
+          if (v < lo) lo = v; else if (v > hi) hi = v;
+        }
+        const top = g.vy(hi);
+        ctx.fillRect(g.x0 + c, top, 1, Math.max(1, g.vy(lo) - top));
+      }
+    } else {
+      /** Zoomed in: connect the samples, and mark each one once they're far enough apart. */
+      const i0 = Math.max(0, Math.floor(view.t0 * p.sr) - 1);
+      const i1 = Math.min(n - 1, Math.ceil(view.t1 * p.sr) + 1);
+      ctx.lineWidth = 1.25;
+      ctx.beginPath();
+      for (let i = i0; i <= i1; i++) ctx.lineTo(g.tx(i / p.sr), g.vy(s[i]));
+      ctx.stroke();
+      if (samplesPerPx < 1 / 6) {
+        for (let i = i0; i <= i1; i++) {
+          ctx.beginPath();
+          ctx.arc(g.tx(i / p.sr), g.vy(s[i]), 2.5, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawOverlay(p) {
+    const g = geom(p);
+    const ctx = prepCanvas(p.overlay, g);
+    clipToPlot(ctx, g);
+
+    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
+    for (const level of levels) {
+      ctx.strokeStyle = ctx.fillStyle = level.color;
+      for (const v of [level.v, -level.v]) {
+        const y = g.vy(v);
+        ctx.beginPath();
+        ctx.moveTo(g.x0, y);
+        ctx.lineTo(g.x1, y);
+        ctx.stroke();
+      }
+      ctx.fillText(levelLabel(level.v), g.x1 - 4, g.vy(level.v) - 2);
+    }
+    ctx.setLineDash([]);
+
+    if (p.samples && p.audio.duration) {
+      ctx.fillStyle = css("--ink");
+      ctx.fillRect(g.tx(p.audio.currentTime) - 0.75, g.y0, 1.5, g.y1 - g.y0);
+    }
+
+    if (hoverT !== null && p.samples) {
+      const x = g.tx(hoverT);
+      ctx.strokeStyle = css("--muted");
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, g.y0);
+      ctx.lineTo(x, g.y1);
+      ctx.stroke();
+
+      const i = Math.round(hoverT * p.sr);
+      if (i >= 0 && i < p.samples.length) {
+        const v = p.samples[i];
+        ctx.fillStyle = css("--ink");
+        ctx.beginPath();
+        ctx.arc(g.tx(i / p.sr), g.vy(v), 3.5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        const text = `t ${(i / p.sr).toFixed(5)} s   n ${i}   y ${v.toFixed(4)}  (${db(v)} dB)`;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = css("--panel");
+        ctx.fillRect(g.x0 + 6, g.y0 + 6, ctx.measureText(text).width + 12, 19);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = css("--ink");
+        ctx.fillText(text, g.x0 + 12, g.y0 + 10);
+      }
+    }
+
+    if (drag?.kind === "box" && drag.plot === p) {
+      const x = Math.min(drag.sx, drag.x), y = Math.min(drag.sy, drag.y);
+      const w = Math.abs(drag.x - drag.sx), h = Math.abs(drag.y - drag.sy);
+      ctx.fillStyle = ctx.strokeStyle = css("--accent");
+      ctx.globalAlpha = 0.12;
+      ctx.fillRect(x, y, w, h);
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, w, h);
+    }
+    ctx.restore();
+  }
+
+  /** Coalesces redraw requests into one per animation frame. */
+  let redrawBase = false, redrawQueued = false;
+  function redraw(base = true) {
+    redrawBase ||= base;
+    if (redrawQueued) return;
+    redrawQueued = true;
+    requestAnimationFrame(() => {
+      for (const p of allPlots) {
+        if (redrawBase) drawBase(p);
+        drawOverlay(p);
+      }
+      redrawBase = redrawQueued = false;
+    });
+  }
+
+  function setView(t0, t1, y0, y1) {
+    const MIN_SPAN_S = 2e-4, MIN_SPAN_Y = 1e-4, MAX_SPAN_Y = 8;
+    if (t1 - t0 < MIN_SPAN_S) [t0, t1] = [(t0 + t1 - MIN_SPAN_S) / 2, (t0 + t1 + MIN_SPAN_S) / 2];
+    const d = duration();
+    const span = Math.min(d, t1 - t0);
+    view.t0 = clamp(t0, 0, d - span);
+    view.t1 = view.t0 + span;
+    const ySpan = clamp(y1 - y0, MIN_SPAN_Y, MAX_SPAN_Y), yMid = (y0 + y1) / 2;
+    view.y0 = yMid - ySpan / 2;
+    view.y1 = yMid + ySpan / 2;
+    redraw();
+  }
+  const resetView = () => setView(0, duration(), -1.05, 1.05);
+
+  for (const p of allPlots) {
+    const ov = p.overlay;
+    const pos = (e) => {
+      const r = ov.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+    const levelAt = (g, y) =>
+      levels.find((l) => Math.min(Math.abs(g.vy(l.v) - y), Math.abs(g.vy(-l.v) - y)) < 5);
+
+    ov.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      const g = geom(p), { x, y } = pos(e);
+      const level = levelAt(g, y);
+      const sx = clamp(x, g.x0, g.x1), sy = clamp(y, g.y0, g.y1);
+      ov.setPointerCapture(e.pointerId);
+      drag = { plot: p, kind: level ? "level" : mode === "pan" ? "pan" : "box", level,
+               sx, sy, x: sx, y: sy, start: { ...view } };
+    });
+
+    ov.addEventListener("pointermove", (e) => {
+      const g = geom(p), { x, y } = pos(e);
+      hoverT = x >= g.x0 && x <= g.x1 ? g.xt(x) : null;
+      if (drag?.plot === p) {
+        drag.x = clamp(x, g.x0, g.x1);
+        drag.y = clamp(y, g.y0, g.y1);
+        if (drag.kind === "level") {
+          drag.level.v = Math.max(1e-5, Math.abs(g.yv(y)));
+          renderLevels();
+        } else if (drag.kind === "pan") {
+          const s = drag.start;
+          const dt = (x - drag.sx) / (g.x1 - g.x0) * (s.t1 - s.t0);
+          const dv = (y - drag.sy) / (g.y1 - g.y0) * (s.y1 - s.y0);
+          setView(s.t0 - dt, s.t1 - dt, s.y0 + dv, s.y1 + dv);
+        }
+      } else {
+        ov.classList.toggle("on-level", !!levelAt(g, y));
+      }
+      redraw(false);
+    });
+
+    ov.addEventListener("pointerup", () => {
+      if (drag?.plot !== p) return;
+      const g = geom(p), d = drag;
+      drag = null;
+      const w = Math.abs(d.x - d.sx), h = Math.abs(d.y - d.sy);
+      if (w < 3 && h < 3 && d.kind !== "level") {
+        if (p.audio.duration) p.audio.currentTime = clamp(g.xt(d.x), 0, p.audio.duration);
+      } else if (d.kind === "box") {
+        /** A flat box zooms time only, a thin one amplitude only. */
+        const zoomT = w >= 10, zoomY = h >= 10;
+        setView(zoomT ? g.xt(Math.min(d.x, d.sx)) : view.t0, zoomT ? g.xt(Math.max(d.x, d.sx)) : view.t1,
+                zoomY ? g.yv(Math.max(d.y, d.sy)) : view.y0, zoomY ? g.yv(Math.min(d.y, d.sy)) : view.y1);
+      }
+      redraw(false);
+    });
+
+    ov.addEventListener("pointerleave", () => {
+      hoverT = null;
+      redraw(false);
+    });
+
+    ov.addEventListener("dblclick", (e) => {
+      const level = levelAt(geom(p), pos(e).y);
+      if (level) removeLevel(level);
+      else resetView();
+    });
+
+    ov.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const g = geom(p), { x, y } = pos(e);
+      /** Shift+wheel arrives as deltaX in Chromium; line-mode deltas (Firefox) are ~3 per notch. */
+      const delta = (e.deltaY || e.deltaX) * (e.deltaMode === 1 ? 33 : 1);
+      const k = Math.exp(delta * 0.0015);
+      if (e.shiftKey) {
+        const v = g.yv(y);
+        setView(view.t0, view.t1, v - (v - view.y0) * k, v + (view.y1 - v) * k);
+      } else {
+        const t = clamp(g.xt(x), view.t0, view.t1);
+        setView(t - (t - view.t0) * k, t + (view.t1 - t) * k, view.y0, view.y1);
+      }
+    }, { passive: false });
+
+    p.audio.addEventListener("play", function tick() {
+      redraw(false);
+      if (!p.audio.paused) requestAnimationFrame(tick);
+    });
+    p.audio.addEventListener("seeked", () => redraw(false));
+  }
+
+  document.querySelectorAll("[data-mode]").forEach((button) => button.onclick = () => {
+    mode = button.dataset.mode;
+    document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("active", b === button));
+    allPlots.forEach((p) => p.overlay.classList.toggle("pan", mode === "pan"));
+  });
+  $("reset-view").onclick = resetView;
+  window.addEventListener("resize", () => redraw());
+
+  /** Level lines accept a linear amplitude ("0.05") or dBFS ("-26dB"). */
+  function addLevel() {
+    const m = $("level-input").value.trim().match(/^(-?\d*\.?\d+)\s*(db)?$/i);
+    const v = m && (m[2] ? 10 ** (parseFloat(m[1]) / 20) : Math.abs(parseFloat(m[1])));
+    if (!(v > 0)) return $("level-input").select();
+    levels.push({ v, color: LEVEL_COLORS[levels.length % LEVEL_COLORS.length] });
+    $("level-input").value = "";
+    renderLevels();
+    redraw(false);
+  }
+  $("add-level").onclick = addLevel;
+  $("level-input").onkeydown = (e) => { if (e.key === "Enter") addLevel(); };
+
+  function removeLevel(level) {
+    levels = levels.filter((l) => l !== level);
+    renderLevels();
+    redraw(false);
+  }
+
+  function renderLevels() {
+    $("levels").replaceChildren(...levels.map((level) => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.innerHTML = `<i style="background:${level.color}"></i>${levelLabel(level.v)}` +
+                       `<button title="Remove">&times;</button>`;
+      chip.querySelector("button").onclick = () => removeLevel(level);
+      return chip;
+    }));
+  }
+
+  /**
+   * 16-bit PCM is read directly so zoomed-in samples are the exact values the C++ side
+   * saw (the browser decoder would resample to the sound card rate). Stereo is averaged
+   * to mono like wav_reader.h. Anything else falls back to the browser decoder.
+   */
+  function parseWav16(buf) {
+    const d = new DataView(buf);
+    if (d.byteLength < 12 || d.getUint32(0) !== 0x52494646 || d.getUint32(8) !== 0x57415645) return null;
+    let fmt = null;
+    for (let o = 12; o + 8 <= d.byteLength;) {
+      const id = d.getUint32(o), size = d.getUint32(o + 4, true), body = o + 8;
+      if (id === 0x666d7420) {        // "fmt "
+        fmt = { format: d.getUint16(body, true), ch: d.getUint16(body + 2, true),
+                sr: d.getUint32(body + 4, true), bits: d.getUint16(body + 14, true) };
+      } else if (id === 0x64617461) { // "data"
+        if (!fmt || fmt.format !== 1 || fmt.bits !== 16) return null;
+        const frames = Math.floor(Math.min(size, d.byteLength - body) / (2 * fmt.ch));
+        const samples = new Float32Array(frames);
+        for (let f = 0; f < frames; f++) {
+          let sum = 0;
+          for (let c = 0; c < fmt.ch; c++) sum += d.getInt16(body + 2 * (f * fmt.ch + c), true);
+          samples[f] = sum / fmt.ch / 32768;
+        }
+        return { samples, sr: fmt.sr };
+      }
+      o = body + size + (size & 1);
+    }
+    return null;
+  }
+
+  let audioCtx = null;
+  async function loadWave(p, bytes, resetZoom) {
+    let data = parseWav16(bytes);
+    if (!data) {
+      try {
+        audioCtx ??= new AudioContext();
+        /** decodeAudioData detaches its buffer, so hand it a copy. */
+        const decoded = await audioCtx.decodeAudioData(bytes.slice(0));
+        data = { samples: decoded.getChannelData(0), sr: decoded.sampleRate };
+      } catch {
+        data = null;
+      }
+    }
+    p.samples = data?.samples ?? null;
+    p.sr = data?.sr ?? 1;
+    let peak = 0;
+    if (p.samples) for (const s of p.samples) peak = Math.max(peak, Math.abs(s));
+    p.peakEl.textContent = p.samples ? `peak ${db(peak)} dBFS` : "could not decode";
+    /** A new output keeps the current zoom so you can compare the same region across runs. */
+    if (resetZoom) resetView();
+    else setView(view.t0, view.t1, view.y0, view.y1);
+  }
+
+  resetView();
+
+  function setStatus(msg, isError = false) {
+    $("status").textContent = msg;
+    $("status").className = isError ? "error" : "";
+  }
+</script>
+</body>
+</html>
